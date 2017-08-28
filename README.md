@@ -11,6 +11,7 @@ Simple self-hosted shorthener url app that produce short url with primary servic
 - Multi url listing with one shortened url
 - Prefix-Suffix shortened code
 - Categorized shorten urls
+- Bulk shorten urls
 
 ## Requirements
 - Redis
