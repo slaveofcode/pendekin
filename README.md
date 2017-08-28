@@ -13,6 +13,10 @@ Simple self-hosted shorthener url app that produce short url with primary servic
 - Categorized shorten urls
 
 ## Requirements
+- Redis
+- Postgreql
+- Nodejs >= 7.6
+- Nginx
 
 ## Installation
 
