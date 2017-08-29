@@ -12,7 +12,7 @@ Simple self-hosted shorthener url app that produce short url with primary servic
 - Prefix-Suffix shortened code
 - Categorized shorten urls
 - Bulk shorten urls
-- Side-effects trigger on url visitting (http request, email notification, push notification)
+- Side-effects trigger on url visitting (http request, email notification, push notification, slack webhook)
 
 ## Requirements
 - Redis
