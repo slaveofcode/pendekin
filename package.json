@@ -1,0 +1,33 @@
+{
+  "name": "pendekin",
+  "version": "1.0.0",
+  "description": "Simple self-hosted shorthener url app that produce short url with primary service based on RESTful API",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slaveofcode/pendekin.git"
+  },
+  "keywords": [
+    "shortener",
+    "url-shortener",
+    "link-shortener",
+    "self-hosted",
+    "shortener-rest",
+    "shortener-api",
+    "api-rest",
+    "restful",
+    "restful-api"
+  ],
+  "author": "Aditya Kresna Permana",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/slaveofcode/pendekin/issues"
+  },
+  "homepage": "https://github.com/slaveofcode/pendekin#readme",
+  "dependencies": {
+    "restify": "^5.2.0"
+  }
+}
