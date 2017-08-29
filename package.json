@@ -8,7 +8,8 @@
     "start:debug": "node --inspect=1891 server.js",
     "db:migrate": "sequelize db:migrate",
     "db:migrate:undo": "sequelize db:migrate:undo",
-    "db:migration:create": "sequelize migration:create",
+    "db:migration:create:info": "sequelize help:migration:create",
+    "db:migration:create": "sequelize migration:create --name",
     "db:migration:version": "sequelize version"
   },
   "repository": {
