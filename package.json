@@ -4,7 +4,12 @@
   "description": "Simple self-hosted shorthener url app that produce short url with primary service based on RESTful API",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "start:debug": "node --inspect=1891 server.js",
+    "db:migrate": "sequelize db:migrate",
+    "db:migrate:undo": "sequelize db:migrate:undo",
+    "db:migration:create": "sequelize migration:create",
+    "db:migration:version": "sequelize version"
   },
   "repository": {
     "type": "git",
@@ -28,6 +33,12 @@
   },
   "homepage": "https://github.com/slaveofcode/pendekin#readme",
   "dependencies": {
-    "restify": "^5.2.0"
+    "dotenv": "^4.0.0",
+    "pg": "^7.2.0",
+    "pg-hstore": "^2.3.2",
+    "restify": "^5.2.0",
+    "restify-cors-middleware": "^1.0.1",
+    "sequelize": "^4.7.5",
+    "sequelize-cli": "^2.8.0"
   }
 }

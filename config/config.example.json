@@ -1,0 +1,29 @@
+{
+  "development": {
+    "username": "root",
+    "password": "mypass",
+    "database": "pendekin",
+    "host": "localhost",
+    "dialect": "postgres",
+    "pool": {
+      "max": 10,
+      "min": 0,
+      "idle": 10000
+    }
+  },
+  "test": {
+    "username": "root",
+    "password": "mypass",
+    "database": "pendekin_test",
+    "host": "localhost",
+    "dialect": "postgres",
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "idle": 10000
+    }
+  },
+  "production": {
+    "use_env_variable": true 
+  }
+}
