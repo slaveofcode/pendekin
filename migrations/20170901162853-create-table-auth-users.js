@@ -1,6 +1,6 @@
 'use strict';
 
-const TABLE_NAME = 'auth_clients'
+const TABLE_NAME = 'auth_users'
 
 module.exports = {
   up: function (queryInterface, Sequelize) {
@@ -10,12 +10,13 @@ module.exports = {
         defaultvalue: Sequelize.UUIDV4,
         primaryKey: true
       },
-      name: {
-        type: Sequelize.STRING
+      email: {
+        type: Sequelize.STRING,
+        unique: true
       },
-      client_key: Sequelize.STRING,
-      client_secret: Sequelize.STRING,
-      active: Sequelize.BOOLEAN,
+      password: Sequelize.STRING,
+      scopes: Sequelize.STRING,
+      last_login: Sequelize.DATE,
       created_at: {
         type: Sequelize.DATE,
         allowNull: false
@@ -31,8 +32,9 @@ module.exports = {
     })
     .then(() => {
       return Promise.all([
-        queryInterface.addIndex(TABLE_NAME, ['name']),
-        queryInterface.addIndex(TABLE_NAME, ['active']),
+        queryInterface.addIndex(TABLE_NAME, ['email']),
+        queryInterface.addIndex(TABLE_NAME, ['password']),
+        queryInterface.addIndex(TABLE_NAME, ['last_login']),
         queryInterface.addIndex(TABLE_NAME, ['created_at']),
         queryInterface.addIndex(TABLE_NAME, ['updated_at']),
         queryInterface.addIndex(TABLE_NAME, ['deleted_at'])
