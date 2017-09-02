@@ -29,6 +29,8 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true
       }
+    }, {
+      schema: 'public'
     })
     .then(() => {
       return Promise.all([

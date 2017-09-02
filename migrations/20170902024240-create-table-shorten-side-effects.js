@@ -1,6 +1,6 @@
 'use strict';
 
-const TABLE_NAME = 'shorten_categories'
+const TABLE_NAME = 'shorten_side_effects'
 
 module.exports = {
   up: function (queryInterface, Sequelize) {
@@ -10,8 +10,17 @@ module.exports = {
         defaultvalue: Sequelize.UUIDV4,
         primaryKey: true
       },
-      name: Sequelize.STRING,
-      description: Sequelize.TEXT,
+      shorten_urls_id: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'shorten_urls',
+          key: 'id'
+        },
+        allowNull: true
+      },
+      type: Sequelize.STRING,
+      payloads: Sequelize.JSON,
+      active: Sequelize.BOOLEAN,
       created_at: {
         type: Sequelize.DATE,
         allowNull: false
@@ -29,7 +38,9 @@ module.exports = {
     })
     .then(() => {
       return Promise.all([
-        queryInterface.addIndex(TABLE_NAME, ['name']),
+        queryInterface.addIndex(TABLE_NAME, ['shorten_urls_id']),
+        queryInterface.addIndex(TABLE_NAME, ['type']),
+        queryInterface.addIndex(TABLE_NAME, ['active']),
         queryInterface.addIndex(TABLE_NAME, ['created_at']),
         queryInterface.addIndex(TABLE_NAME, ['updated_at']),
         queryInterface.addIndex(TABLE_NAME, ['deleted_at'])

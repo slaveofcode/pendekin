@@ -10,7 +10,7 @@ module.exports = {
         defaultvalue: Sequelize.UUIDV4,
         primaryKey: true
       },
-      category: {
+      shorten_category_id: {
         type: Sequelize.UUID,
         references: {
           model: 'shorten_categories',
@@ -27,6 +27,7 @@ module.exports = {
       },
       code: {
         type: Sequelize.STRING(15),
+        unique: true,
         allowNull: false
       },
       protected_password: {
@@ -40,6 +41,10 @@ module.exports = {
           key: 'id'
         },
         allowNull: true
+      },
+      url: {
+        type: Sequelize.STRING(512),
+        allowNull: false
       },
       is_index_urls: {
         type: Sequelize.BOOLEAN,
@@ -65,10 +70,12 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true
       }
+    }, {
+      schema: 'public'
     })
     .then(() => {
       return Promise.all([
-        queryInterface.addIndex(TABLE_NAME, ['category']),
+        queryInterface.addIndex(TABLE_NAME, ['shorten_category_id']),
         queryInterface.addIndex(TABLE_NAME, ['prefix']),
         queryInterface.addIndex(TABLE_NAME, ['suffix']),
         queryInterface.addIndex(TABLE_NAME, ['code']),
