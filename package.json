@@ -9,7 +9,8 @@
     "db:migrate": "sequelize db:migrate --config=./config/config.json",
     "db:migrate:undo": "sequelize db:migrate:undo --config=./config/config.json",
     "db:migration:create:info": "sequelize help:migration:create",
-    "db:migration:create": "sequelize migration:create --name"
+    "db:migration:create": "sequelize migration:create --name",
+    "db:seed:all": "sequelize db:seed:all --config=./config/config.json"
   },
   "repository": {
     "type": "git",
@@ -36,9 +37,11 @@
     "dotenv": "^4.0.0",
     "pg": "^7.2.0",
     "pg-hstore": "^2.3.2",
+    "randomstring": "^1.1.5",
     "restify": "^5.2.0",
     "restify-cors-middleware": "^1.0.1",
     "sequelize": "^4.7.5",
-    "sequelize-cli": "^2.8.0"
+    "sequelize-cli": "^2.8.0",
+    "uuid": "^3.1.0"
   }
 }
