@@ -14,6 +14,8 @@ const verifyClient = async (client_key, client_secret, done) => {
       }
     })
 
+    console.log(client)
+
     if (!client) return done(null, false)
 
     if (client.get('client_secret') !== client_secret) return done(null, false)
