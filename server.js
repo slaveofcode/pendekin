@@ -14,6 +14,8 @@ if (!process.env.NODE_ENV) {
 
 const restify = require('restify')
 const corsMiddleware = require('restify-cors-middleware')
+const passport = require('./passport')
+const routes = require('./routes')
 
 const server = restify.createServer({
   name: 'pendekin',
@@ -22,7 +24,7 @@ const server = restify.createServer({
 
 const cors = corsMiddleware({
   preflightMaxAge: 5, //Optional
-  origins: ['http://api.myapp.com', 'http://web.myapp.com'],
+  origins: ['http://api.myapp.com', 'http://web.myapp.com', '*'],
   allowHeaders: ['API-Token'],
   exposeHeaders: ['API-Token-Expiry']
 })
@@ -38,11 +40,15 @@ server.use(restify.plugins.queryParser({ mapParams: true }))
 server.use(restify.plugins.fullResponse())
 server.use(restify.plugins.conditionalRequest()) // ETag support 
 server.use(cors.actual)
+server.use(passport.initialize())
+server.use(passport.session())
 
 server.get('/echo/:name', function (req, res, next) {
   res.send(req.params);
   return next();
 });
+
+routes.applyRoutes(server)
 
 server.listen(8080, function () {
   console.log('%s listening at %s', server.name, server.url);

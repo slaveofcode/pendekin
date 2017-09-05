@@ -1,7 +1,10 @@
 'use strict';
 module.exports = function(sequelize, DataTypes) {
-  var AuthClients = sequelize.define('auth_clients', {
-    id: DataTypes.UUID,
+  var AuthClient = sequelize.define('AuthClient', {
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true
+    },
     name: DataTypes.STRING,
     client_key: DataTypes.STRING,
     client_secret: DataTypes.STRING,
@@ -10,6 +13,7 @@ module.exports = function(sequelize, DataTypes) {
     updated_at: DataTypes.DATE,
     deleted_at: DataTypes.DATE
   }, {
+    tableName: 'auth_clients',
     timestamps: true,
     paranoid: true,
     createdAt: 'created_at',
@@ -21,5 +25,5 @@ module.exports = function(sequelize, DataTypes) {
       }
     }
   });
-  return AuthClients;
+  return AuthClient;
 };
