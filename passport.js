@@ -11,18 +11,16 @@ const DB = require(`${app_root}/models`)
 const verifyClient = async (client_key, client_secret, done) => {
   try {
 
-    const client = await new DB.AuthClient.findOne({
+    const client = await DB.AuthClient.findOne({
       where: {
         client_key,
         active: true
       }
     })
 
-    console.log(client)
-
     if (!client) return done(null, false)
 
-    if (client.get('client_secret') !== client_secret) return done(null, false)
+    if (client.client_secret !== client_secret) return done(null, false)
 
     return done(null, client)
   } catch (error) {
@@ -33,12 +31,4 @@ const verifyClient = async (client_key, client_secret, done) => {
 passport.use(new ClientPasswordStrategy(verifyClient));
 passport.use(new BasicStrategy(verifyClient))
 
-exports = module.exports = passport
-exports.authorizationHeaderToBodyBinder = () => {
-  return (req, res, next) => {
-    if (req.headers['authorization']) {
-
-    }
-    return next()
-  }
-}
+module.exports = passport

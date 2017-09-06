@@ -44,7 +44,6 @@ server.use(restify.plugins.conditionalRequest()) // ETag support
 server.use(cors.actual)
 server.use(passport.initialize())
 server.use(passport.session())
-server.use(passport.authorizationHeaderToBodyBinder())
 
 server.get('/echo/:name', function (req, res, next) {
   res.send(req.params);
