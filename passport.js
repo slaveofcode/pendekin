@@ -1,8 +1,12 @@
 'use strict'
 
 const passport = require('passport')
-const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
+const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy
+const BasicStrategy = require('passport-http').BasicStrategy
 const DB = require(`${app_root}/models`)
+// const Logger = require(`${app_root}/logger`)
+// const logger = Logger.getLogger(Logger.TYPES.PASSPORT)
+
 
 const verifyClient = async (client_key, client_secret, done) => {
   try {
@@ -27,5 +31,14 @@ const verifyClient = async (client_key, client_secret, done) => {
 }
 
 passport.use(new ClientPasswordStrategy(verifyClient));
+passport.use(new BasicStrategy(verifyClient))
 
-module.exports = passport
+exports = module.exports = passport
+exports.authorizationHeaderToBodyBinder = () => {
+  return (req, res, next) => {
+    if (req.headers['authorization']) {
+
+    }
+    return next()
+  }
+}
