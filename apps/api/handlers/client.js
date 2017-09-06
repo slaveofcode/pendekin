@@ -1,13 +1,11 @@
 'use strict'
 
-const passport = require('passport')
 const Routing = require('restify-routing')
+const Permission = require('../utils/permission')
 const router = new Routing()
 
 
-router.get('/', 
-  passport.authenticate(['basic', 'oauth2-client-password'], { session: false }), 
-  (req, res, next) => {
+router.get('/', Permission.BasicOrClient(), (req, res, next) => {
   res.send({status: 'ok'})
   return next();
 })
