@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/slaveofcode/pendekin#readme",
   "dependencies": {
+    "bunyan-winston-adapter": "^0.2.0",
     "dotenv": "^4.0.0",
     "passport": "^0.4.0",
     "passport-oauth2-client-password": "^0.1.2",
@@ -45,6 +46,7 @@
     "restify-routing": "^0.3.11",
     "sequelize": "^4.7.5",
     "sequelize-cli": "^2.8.0",
-    "uuid": "^3.1.0"
+    "uuid": "^3.1.0",
+    "winston": "^2.3.1"
   }
 }

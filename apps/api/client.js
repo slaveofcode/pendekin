@@ -6,8 +6,11 @@ const router = new Routing()
 
 
 router.get('/', 
-  passport.authenticate('oauth2-client-password', { session: false }), 
-  (req, res) => {
+  passport.authenticate(['oauth2-client-password'], { session: false }), 
+  (req, res, next) => {
   res.send({status: 'ok'})
+  return next();
 })
 
+
+module.exports = router

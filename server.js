@@ -16,10 +16,12 @@ const restify = require('restify')
 const corsMiddleware = require('restify-cors-middleware')
 const passport = require('./passport')
 const routes = require('./routes')
+const logger = require('./logger')
 
 const server = restify.createServer({
   name: 'pendekin',
-  version: '1.0.0'
+  version: '1.0.0',
+  log: logger.getLoggerAdapter()
 })
 
 const cors = corsMiddleware({

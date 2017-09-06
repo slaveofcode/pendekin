@@ -3,9 +3,12 @@
 const Routing = require('restify-routing')
 const appRouter = new Routing()
 
-const subRouter = new Routing()
-subRouter.get('/', (req, res) => {
-  res.send('Server is running...')
+appRouter.get('/', (req, res, next) => {
+  res.send({
+    status: 200,
+    msg: 'Server is running...'
+  })
+  return next()
 })
 
 appRouter.use('/api', require('./api'))
