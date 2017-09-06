@@ -36,6 +36,7 @@
   "dependencies": {
     "bunyan-winston-adapter": "^0.2.0",
     "dotenv": "^4.0.0",
+    "lodash": "^4.17.4",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",
     "passport-oauth2-client-password": "^0.1.2",
