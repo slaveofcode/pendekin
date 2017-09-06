@@ -1,9 +1,0 @@
-auth_clients(id, name, scopes, client_id, client_secret, active:bool) --> for client request shorten urls & client dashboard
-auth_users(id, email, password, scopes, last_login)
-
-shorten_categories(id:uuid, name, description)
-shorten_urls(id:uuid, prefix, suffix, code, auto_remove_on_visited:bool, category_id, expired_on, is_index_urls:bool, protected_password:str)
-shorten_urls_archives(...same_as_shortenurls_cols, archived_at)
-shorten_visit_infos(id, shorten_urls_id, referrer, ip_address, proxy, provider, user_agent, time)
-shorten_side_effects(id, shorten_urls_ids, type, payloads, active:bool)
-shorten_side_effects_info(id, side_effect_ids, request_payloads, response_content, run_at, finished_at)
