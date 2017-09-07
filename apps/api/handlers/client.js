@@ -3,11 +3,11 @@
 const _ = require('lodash')
 const Routing = require('restify-routing')
 const HttpStatus = require('http-status-codes')
-const RestifyError = require('restify-errors')
 const Permission = require('../utils/permission')
 const Joi = require(`${app_root}/libs/joi`);
 const Pagination = require(`${app_root}/libs/pagination_parser`)
 const DB = require(`${app_root}/models`)
+
 const router = new Routing()
 
 const pageExtractor = Pagination()
