@@ -36,6 +36,7 @@
   "dependencies": {
     "bunyan-winston-adapter": "^0.2.0",
     "dotenv": "^4.0.0",
+    "joi": "^10.6.0",
     "lodash": "^4.17.4",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",
@@ -45,6 +46,7 @@
     "randomstring": "^1.1.5",
     "restify": "^5.2.0",
     "restify-cors-middleware": "^1.0.1",
+    "restify-errors": "^5.0.0",
     "restify-routing": "^0.3.11",
     "sequelize": "^4.7.5",
     "sequelize-cli": "^2.8.0",
