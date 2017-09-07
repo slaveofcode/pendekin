@@ -36,6 +36,7 @@
   "dependencies": {
     "bunyan-winston-adapter": "^0.2.0",
     "dotenv": "^4.0.0",
+    "http-status-codes": "^1.2.0",
     "joi": "^10.6.0",
     "lodash": "^4.17.4",
     "passport": "^0.4.0",
