@@ -1,25 +1,31 @@
 'use strict'
 
 module.exports = function (sequelize, DataTypes) {
-  var ShortenCategory = sequelize.define(
-    'ShortenCategory',
+  var ShortenVisitInfos = sequelize.define(
+    'ShortenVisitInfos',
     {
       id: {
         type: DataTypes.UUID,
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4
       },
-      name: DataTypes.STRING,
-      description: {
-        type: DataTypes.TEXT,
+      shorten_urls_id: DataTypes.UUID,
+      referrer: {
+        type: DataTypes.STRING,
         allowNull: true
       },
+      ip_address: DataTypes.STRING,
+      proxy: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      user_agent: DataTypes.STRING,
       created_at: DataTypes.DATE,
       updated_at: DataTypes.DATE,
       deleted_at: DataTypes.DATE
     },
     {
-      tableName: 'shorten_categories',
+      tableName: 'shorten_visit_infos',
       timestamps: true,
       paranoid: true,
       createdAt: 'created_at',
@@ -27,11 +33,11 @@ module.exports = function (sequelize, DataTypes) {
       deletedAt: 'deleted_at',
       classMethods: {
         associate: function (models) {
-          ShortenCategory.hasMany(models.ShortenUrl, { foreignKey: 'shorten_category_id' })
+          ShortenVisitInfos.belongsTo(models.ShortenUrl, { foreignKey: 'shorten_urls_id' })
         }
       }
     }
   )
 
-  return ShortenCategory
+  return ShortenVisitInfos
 }
