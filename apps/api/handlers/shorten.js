@@ -5,9 +5,12 @@ const Routing = require('restify-routing')
 const HttpStatus = require('http-status-codes')
 const ValidUrl = require('valid-url')
 const RestifyError = require('restify-errors')
+const Moment = require('moment')
 const Permission = require('../utils/permission')
 const Joi = require(`${app_root}/libs/joi`)
 const DB = require(`${app_root}/models`)
+const PasswordLib = require(`${app_root}/libs/password`)
+const CodeGenerator = require(`${app_root}/libs/code_generator`)
 
 const router = new Routing()
 
@@ -25,10 +28,50 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
 
   try {
     const validatedParams = await Joi.validate(params, schema)
+    const { 
+      suffix, 
+      prefix, 
+      password, 
+      expired_at, 
+      url, 
+      category_id } = validatedParams
 
-    if (!ValidUrl.isUri(validatedParams.url))
-      return res.send(new RestifyError.BadRequestError())
+    if (!ValidUrl.isHttpUri(url) && !ValidUrl.isHttpsUri(url))
+      return res.send(new RestifyError.BadRequestError('URL parameter is not valid'))
 
+    let shorten_category_id = null
+    if (!_.isNil(category_id)) {
+      const category = await DB.ShortenCategory.findOne({
+        where: { id: { $eq: category_id } } 
+      })
+
+      if (!category)
+        return res.send(new RestifyError.BadRequestError('Category not found'))
+
+      shorten_category_id = category.id
+    }
+
+    let protected_password = null
+    if (!_.isNil(password)) {
+      protected_password = await PasswordLib.hashPassword(password)
+    }
+
+    let expiredTime = null
+    if (!_.isNil(expired_at)) {
+      expiredTime = (_.isNil(expired_at)) ? null : moment(expired_at)
+    }
+
+    const shorten = await DB.ShortenUrl.create({
+      code: CodeGenerator.generate(),
+      expired_at: expiredTime,
+      url,
+      shorten_category_id,
+      prefix,
+      suffix,
+      protected_password
+    })
+
+    res.send(shorten)
     return next()
   } catch (err) {
     return next(err)

@@ -24,11 +24,11 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true
       },
       url: DataTypes.STRING,
-      is_index_url: {
+      is_index_urls: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
       },
-      is_auto_removal_on_visited: {
+      is_auto_remove_on_visited: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
       },

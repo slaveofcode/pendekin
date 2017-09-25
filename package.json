@@ -10,7 +10,8 @@
     "db:migrate:undo": "sequelize db:migrate:undo --config=./config/config.json",
     "db:migration:create:info": "sequelize help:migration:create",
     "db:migration:create": "sequelize migration:create --name",
-    "db:seed:all": "sequelize db:seed:all --config=./config/config.json"
+    "db:seed:all": "sequelize db:seed:all --config=./config/config.json",
+    "test": "mocha --recursive --timeout 15000 test"
   },
   "repository": {
     "type": "git",
@@ -34,11 +35,15 @@
   },
   "homepage": "https://github.com/slaveofcode/pendekin#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "bluebird": "^3.5.0",
     "bunyan-winston-adapter": "^0.2.0",
     "dotenv": "^4.0.0",
+    "hashids": "^1.1.1",
     "http-status-codes": "^1.2.0",
     "joi": "^10.6.0",
     "lodash": "^4.17.4",
+    "moment": "^2.18.1",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",
     "passport-oauth2-client-password": "^0.1.2",
@@ -55,5 +60,9 @@
     "uuid": "^3.1.0",
     "valid-url": "^1.0.9",
     "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^3.5.3"
   }
 }

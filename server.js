@@ -52,6 +52,6 @@ server.get('/echo/:name', function (req, res, next) {
 
 routes.applyRoutes(server)
 
-server.listen(8080, function () {
+server.listen(process.env.SERVER_PORT, function () {
   console.log('%s listening at %s', server.name, server.url);
 });
