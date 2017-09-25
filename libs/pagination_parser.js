@@ -29,9 +29,8 @@ const getParamWithOffsetLimit = (offset = 0, limit = LIMIT) => {
   }
 }
 
-module.exports = (perPage = LIMIT) => {
-  return (params) => {
-
+const parser = (perPage = LIMIT) => {
+  return params => {
     if (params.page) {
       return getParamWithPageNumber(params.page)
     }
@@ -41,6 +40,14 @@ module.exports = (perPage = LIMIT) => {
     }
 
     return getParamWithPageNumber(1)
-
   }
+}
+
+
+module.exports = {
+  LIMIT,
+  MAX_LIMIT,
+  getParamWithPageNumber,
+  getParamWithOffsetLimit,
+  parser
 }

@@ -10,7 +10,7 @@ const DB = require(`${app_root}/models`)
 
 const router = new Routing()
 
-const pageExtractor = Pagination()
+const pageExtractor = Pagination.parser()
 const schema = Joi.object().keys({
   name: Joi.string().trim().required(),
   description: Joi.string().trim().optional()
