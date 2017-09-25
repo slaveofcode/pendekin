@@ -5,18 +5,18 @@ const _ = require('lodash')
 const LIMIT = 20
 const MAX_LIMIT = 500
 
-const getParamWithPageNumber = (pageNumber) => {
+const getParamWithPageNumber = (pageNumber, limit = LIMIT) => {
   pageNumber = parseInt(pageNumber)
   const pageParams = {
     offset: 0,
-    limit: LIMIT
+    limit: limit
   }
 
   if (pageNumber <= 1)
     return pageParams
 
   Object.assign(pageParams, {
-    offset: ((pageNumber - 1) * LIMIT) - 1
+    offset: ((pageNumber - 1) * limit) - 1
   })
 
   return pageParams
@@ -31,12 +31,13 @@ const getParamWithOffsetLimit = (offset = 0, limit = LIMIT) => {
 
 const parser = (perPage = LIMIT) => {
   return params => {
-    if (params.page) {
-      return getParamWithPageNumber(params.page)
+    if (params && params.page) {
+      return getParamWithPageNumber(params.page, perPage)
     }
 
-    if (params.offset) {
-      return getParamWithOffsetLimit(params.offset, params.limit)
+    if (params && !_.isNil(params.offset)) {
+      const chosenLimit = params.limit ? params.limit : perPage
+      return getParamWithOffsetLimit(params.offset, chosenLimit)
     }
 
     return getParamWithPageNumber(1)
