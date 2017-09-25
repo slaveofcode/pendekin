@@ -57,7 +57,31 @@ describe('Pagination Parser', () => {
   })
 
   describe('getParamWithPageNumber', () => {
+    it('Should have default value for offset and limit', () => {
+      const pagingParams = pagination_parser.getParamWithOffsetLimit()
+      expect(pagingParams).to.have.property('offset', 0)
+      expect(pagingParams).to.have.property('limit', pagination_parser.LIMIT)
+    })
 
+    it('Should give right type for offset and limit', () => {
+      const pagingParams = pagination_parser.getParamWithOffsetLimit()
+      expect(pagingParams.offset).to.be.a('number')
+      expect(pagingParams.limit).to.be.a('number')
+    })
+
+    it('Should give right value for offset and limit', () => {
+      const pagingParams = pagination_parser.getParamWithOffsetLimit(0, 250)
+      expect(pagingParams).to.have.property('offset', 0)
+      expect(pagingParams).to.have.property('limit', 250)
+
+      const pagingParams2 = pagination_parser.getParamWithOffsetLimit(0, 550)
+      expect(pagingParams2).to.have.property('offset', 0)
+      expect(pagingParams2).to.have.property('limit', pagination_parser.MAX_LIMIT)
+
+      const pagingParams3 = pagination_parser.getParamWithOffsetLimit(26, 550)
+      expect(pagingParams3).to.have.property('offset', 26)
+      expect(pagingParams3).to.have.property('limit', pagination_parser.MAX_LIMIT)
+    })
   })
 
   describe('parser', () => {

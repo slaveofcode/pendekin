@@ -25,7 +25,7 @@ const getParamWithPageNumber = (pageNumber) => {
 const getParamWithOffsetLimit = (offset = 0, limit = LIMIT) => {
   return {
     offset: (offset < 0) ? 0 : offset,
-    limit: _.isNil(limit) || _.isNaN(limit) ? LIMIT : parseInt(limit)
+    limit: _.isNil(limit) || _.isNaN(limit) ? LIMIT : (parseInt(limit) > MAX_LIMIT ? MAX_LIMIT : parseInt(limit))
   }
 }
 
