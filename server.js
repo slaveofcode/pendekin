@@ -1,7 +1,6 @@
 'use strict';
 
-let path = require('path')
-global.app_root = path.resolve(__dirname)
+require('./global_var')
 
 require('dotenv').config({
   path: '.env',
@@ -45,13 +44,6 @@ server.use(cors.actual)
 server.use(passport.initialize())
 server.use(passport.session())
 
-server.get('/echo/:name', function (req, res, next) {
-  res.send(req.params);
-  return next();
-});
-
 routes.applyRoutes(server)
 
-server.listen(process.env.SERVER_PORT, function () {
-  console.log('%s listening at %s', server.name, server.url);
-});
+module.exports = server

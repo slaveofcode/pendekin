@@ -2,16 +2,16 @@
   "name": "pendekin",
   "version": "1.0.0",
   "description": "Simple self-hosted shorthener url app that produce short url with primary service based on RESTful API",
-  "main": "server.js",
+  "main": "runner.js",
   "scripts": {
-    "start": "node server.js",
-    "start:debug": "node --inspect=1891 server.js",
+    "start": "node runner.js",
+    "start:debug": "node --inspect=1891 runner.js",
     "db:migrate": "sequelize db:migrate --config=./config/config.json",
     "db:migrate:undo": "sequelize db:migrate:undo --config=./config/config.json",
     "db:migration:create:info": "sequelize help:migration:create",
     "db:migration:create": "sequelize migration:create --name",
     "db:seed:all": "sequelize db:seed:all --config=./config/config.json",
-    "test": "mocha --recursive --timeout 15000 test"
+    "test": "NODE_ENV=test mocha --require global_var.js --timeout 15000 --recursive test/"
   },
   "repository": {
     "type": "git",
@@ -63,6 +63,8 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha": "^3.5.3"
+    "mocha": "^3.5.3",
+    "sinon": "^4.0.0",
+    "supertest": "^3.0.0"
   }
 }
