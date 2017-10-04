@@ -64,11 +64,10 @@ describe('Category api\'s', () => {
   })
 
   describe('Detail', () => {
-    it('Should create new Category', async () => {
+    it('Should get correct Category', async () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey()
 
-      // create new category row
       const CATEGORY_NAME = faker.lorem.words(4)
       const CATEGORY_DESC = faker.lorem.sentence(10)
       const category = await DB.ShortenCategory.create({
@@ -76,7 +75,6 @@ describe('Category api\'s', () => {
         description: CATEGORY_DESC
       })
 
-      console.log(category.id)
       const response = await request.get(`/api/category/${category.id}`, {
         headers: {'Authorization': `Basic ${authKey}`}
       })
@@ -90,7 +88,31 @@ describe('Category api\'s', () => {
     })
   })
 
-  describe('Create', () => {})
+  describe('Create', () => {
+    it('Should create a new Category', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const CATEGORY_NAME = faker.lorem.words(4)
+      const CATEGORY_DESC = faker.lorem.sentence(10)
+
+      const response = await request.post(`/api/category`, {
+          name: CATEGORY_NAME,
+          description: CATEGORY_DESC
+        },
+        {
+          headers: {
+            'Authorization': `Basic ${authKey}`
+          }
+        })
+
+      const categoryObj = response.data
+      console.log(categoryObj)
+      expect(response.status).to.equal(201)
+      expect(categoryObj.name).to.equal(CATEGORY_NAME)
+      expect(categoryObj.description).to.equal(CATEGORY_DESC)
+    })
+  })
 
   describe('Delete', () => {})
 

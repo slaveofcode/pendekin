@@ -67,7 +67,7 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
       description
     })
 
-    res.send(categories)
+    res.send(HttpStatus.CREATED, categories)
     return next()
   } catch (err) {
     return next(err)
