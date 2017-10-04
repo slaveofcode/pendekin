@@ -107,13 +107,34 @@ describe('Category api\'s', () => {
         })
 
       const categoryObj = response.data
-      console.log(categoryObj)
       expect(response.status).to.equal(201)
       expect(categoryObj.name).to.equal(CATEGORY_NAME)
       expect(categoryObj.description).to.equal(CATEGORY_DESC)
     })
   })
 
-  describe('Delete', () => {})
+  describe('Delete', () => {
+    it('Should remove category', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const category = await DB.ShortenCategory.create({
+        name: faker.lorem.words(4),
+        description: faker.lorem.sentence(10)
+      })
+
+      const response = await request.delete(`/api/category/${category.id}`, {
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      expect(response.status).to.equal(204)
+
+      const responseGet = await request.get(`/api/category/${category.id}`, {
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      expect(responseGet.status).to.equal(404)
+    })
+  })
 
 })

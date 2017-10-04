@@ -41,15 +41,18 @@ router.get('/:id', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
 
   try {
-    const categories = await DB.ShortenCategory.findOne({
+    const category = await DB.ShortenCategory.findOne({
       where: {
         id: {
           $eq: params.id
         }
       }
     })
-    res.send(categories)
-    return next(err)
+  
+    if (_.isNull(category))
+      return res.send(404, 'Not Found')
+    else
+      return res.send(category)
   } catch (err) {
     return next(err)
   }
