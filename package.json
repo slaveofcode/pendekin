@@ -35,6 +35,7 @@
   },
   "homepage": "https://github.com/slaveofcode/pendekin#readme",
   "dependencies": {
+    "axios": "^0.16.2",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.5.0",
     "bunyan-winston-adapter": "^0.2.0",
