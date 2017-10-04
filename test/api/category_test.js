@@ -1,14 +1,12 @@
 'use strict'
 
-// const server = require('../../server')
-// const request = require('supertest')(server)
 const chai = require('chai')
+const faker = require('faker')
 const DB = require(`${app_root}/models`)
 const request = require('../utils/request')
 const authClient = require('../utils/auth_client')
 
 const expect = chai.expect
-const assert = chai.assert
 
 describe('Category api\'s', () => {
 
@@ -64,5 +62,36 @@ describe('Category api\'s', () => {
       expect(responseData.rows).to.have.length(3)
     })
   })
+
+  describe('Detail', () => {
+    it('Should create new Category', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      // create new category row
+      const CATEGORY_NAME = faker.lorem.words(4)
+      const CATEGORY_DESC = faker.lorem.sentence(10)
+      const category = await DB.ShortenCategory.create({
+        name: CATEGORY_NAME,
+        description: CATEGORY_DESC
+      })
+
+      console.log(category.id)
+      const response = await request.get(`/api/category/${category.id}`, {
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const categoryObj = response.data
+      expect(categoryObj.id).to.be.a('string')
+      expect(categoryObj.id).to.equal(category.id)
+      expect(categoryObj.name).to.equal(CATEGORY_NAME)
+      expect(categoryObj.description).to.equal(CATEGORY_DESC)
+
+    })
+  })
+
+  describe('Create', () => {})
+
+  describe('Delete', () => {})
 
 })
