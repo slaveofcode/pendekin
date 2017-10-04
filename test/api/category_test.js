@@ -63,6 +63,34 @@ describe('Category api\'s', () => {
     })
   })
 
+  describe('Edit', () => {
+    it('Should be able to change category', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const CATEGORY_NAME = faker.lorem.words(4)
+      const CATEGORY_DESC = faker.lorem.sentence(10)
+      const category = await DB.ShortenCategory.create({
+        name: CATEGORY_NAME,
+        description: CATEGORY_DESC
+      })
+
+      const response = await request.put(`/api/category/${category.id}`, 
+        {
+          name: faker.lorem.words(3),
+          description: faker.lorem.sentence(8)
+        },
+        {
+          headers: {'Authorization': `Basic ${authKey}`}
+        })
+
+      const categoryObj = response.data
+      expect(categoryObj.id).to.equal(category.id)
+      expect(categoryObj.name).to.not.equal(CATEGORY_NAME)
+      expect(categoryObj.description).to.not.equal(CATEGORY_DESC)
+    })
+  })
+
   describe('Detail', () => {
     it('Should get correct Category', async () => {
       // Initialize auth
