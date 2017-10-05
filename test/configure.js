@@ -5,6 +5,8 @@ const server = require('../server')
 
 before(() => {
   // before all test is started
+  // load env
+  require('dotenv').config()
 })
 
 after(() => {
@@ -12,8 +14,7 @@ after(() => {
 })
 
 beforeEach( async () => {
-  // load env
-  require('dotenv').config()
+  
 
   // run server
   server.listen('1818')

@@ -11,8 +11,10 @@ const Joi = require(`${app_root}/libs/joi`)
 const DB = require(`${app_root}/models`)
 const PasswordLib = require(`${app_root}/libs/password`)
 const CodeGenerator = require(`${app_root}/libs/code_generator`)
+const Pagination = require(`${app_root}/libs/pagination_parser`)
 
 const router = new Routing()
+const pageExtractor = Pagination.parser()
 
 const schema = Joi.object().keys({
   url: Joi.string().trim().lowercase().required(),
@@ -21,6 +23,24 @@ const schema = Joi.object().keys({
   suffix: Joi.string().trim().max(5).optional(),
   password: Joi.string().optional(),
   expired_at: Joi.date().iso().optional()
+})
+
+router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
+  const { params } = req
+  const pageParams = pageExtractor(params)
+
+  try {
+    const shortens = await DB.ShortenUrl.findAndCount(pageParams)
+    res.send({
+      rows: shortens.rows,
+      payload: Object.assign({
+        count: shortens.count
+      }, pageParams)
+    })
+    return next(err)
+  } catch (err) {
+    return next(err)
+  }
 })
 
 router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
