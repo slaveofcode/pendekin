@@ -8,10 +8,16 @@ before(() => {
   require('dotenv').config()
 
   // run server
-  server.listen('1818');
+  server.listen('1818')
+})
+
+after(() => {
+  server.close()
 })
 
 beforeEach( async () => {
   await DB.sequelize.sync({ force: true })
 
 })
+
+afterEach(() => {})
