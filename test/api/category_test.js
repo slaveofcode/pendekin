@@ -3,6 +3,7 @@
 const chai = require('chai')
 const faker = require('faker')
 const DB = require(`${app_root}/models`)
+const Pagination = require(`${app_root}/libs/pagination_parser`)
 const request = require('../utils/request')
 const authClient = require('../utils/auth_client')
 
@@ -60,6 +61,11 @@ describe('Category api\'s', () => {
 
       const responseData = response.data
       expect(responseData.rows).to.have.length(3)
+
+      const payload = responseData.payload
+      expect(payload.count).to.equal(3)
+      expect(payload.offset).to.equal(0)
+      expect(payload.limit).to.equal(Pagination.LIMIT)
     })
   })
 

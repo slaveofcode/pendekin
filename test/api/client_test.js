@@ -5,6 +5,7 @@ const faker = require('faker')
 const UUIDV4 = require('uuid/v4')
 const RandomString = require('randomstring')
 const DB = require(`${app_root}/models`)
+const Pagination = require(`${app_root}/libs/pagination_parser`)
 const request = require('../utils/request')
 const authClient = require('../utils/auth_client')
 
@@ -39,6 +40,11 @@ describe('Client api\'s', () => {
       // because we had create 1 client before, 
       // so now the client count would be 2
       expect(responseData.rows).to.have.length(2)
+      
+      const payload = responseData.payload
+      expect(payload.count).to.equal(2)
+      expect(payload.offset).to.equal(0)
+      expect(payload.limit).to.equal(Pagination.LIMIT)
     })
 
     it('Should give a proper client list count', async () => {
@@ -76,6 +82,11 @@ describe('Client api\'s', () => {
       // because we had create 1 client before, 
       // so now the client count would be 4
       expect(responseData.rows).to.have.length(4)
+
+      const payload = responseData.payload
+      expect(payload.count).to.equal(4)
+      expect(payload.offset).to.equal(0)
+      expect(payload.limit).to.equal(Pagination.LIMIT)
     })
 
   })
