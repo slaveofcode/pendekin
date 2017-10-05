@@ -21,7 +21,7 @@ describe('Category api\'s', () => {
       const authKey = await authClient.getAuthorizationKey()
 
       // create new category row
-      const category = await DB.ShortenCategory.create({
+      await DB.ShortenCategory.create({
         name: 'Book',
         description: 'Book Category'
       })
@@ -38,8 +38,8 @@ describe('Category api\'s', () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey()
       
-      // create 3  new category row
-      const category = await DB.ShortenCategory.bulkCreate([
+      // create 3 new category row
+      await DB.ShortenCategory.bulkCreate([
         {
           name: 'Book 1',
           description: 'Book Category'
@@ -112,7 +112,6 @@ describe('Category api\'s', () => {
       expect(categoryObj.id).to.equal(category.id)
       expect(categoryObj.name).to.equal(CATEGORY_NAME)
       expect(categoryObj.description).to.equal(CATEGORY_DESC)
-
     })
   })
 

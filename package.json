@@ -11,7 +11,8 @@
     "db:migration:create:info": "sequelize help:migration:create",
     "db:migration:create": "sequelize migration:create --name",
     "db:seed:all": "sequelize db:seed:all --config=./config/config.json",
-    "test": "NODE_ENV=test mocha --require global_var.js --timeout 15000 --recursive test/"
+    "test": "NODE_ENV=test mocha --require global_var.js --timeout 15000 --recursive test/",
+    "test:watch": "NODE_ENV=test mocha --watch --require global_var.js --timeout 15000 --recursive test/"
   },
   "repository": {
     "type": "git",

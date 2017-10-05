@@ -47,8 +47,11 @@ router.get('/:id', Permission.BasicOrClient(), async (req, res, next) => {
         }
       }
     })
-    res.send(client)
-    return next(err)
+    
+    if (_.isNull(client))
+      return res.send(404, 'Not Found')
+    else
+      return res.send(client)
   } catch (err) {
     return next(err)
   }
@@ -61,11 +64,9 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
     const validatedParams = await Joi.validate(params, schema)
     const pageParams = pageExtractor(validatedParams)
 
-    const client = await DB.AuthClient.create({
-      name: validatedParams.name
-    })
+    const client = await DB.AuthClient.create(validatedParams)
     
-    res.send(client)
+    res.send(HttpStatus.CREATED, client)
     return next()
   } catch (err) {
     return next(err)

@@ -7,12 +7,12 @@ const UUIDV4 = require('uuid/v4')
 const create = async () => {
   return DB.AuthClient.create({
     id: UUIDV4(),
-      name: 'WebApp',
-      client_key: RandomString.generate({ length: 50 }),
-      client_secret: RandomString.generate({ length: 100 }),
-      active: true,
-      created_at: new Date(),
-      updated_at: new Date()
+    name: 'WebApp',
+    client_key: RandomString.generate({ length: 50 }),
+    client_secret: RandomString.generate({ length: 100 }),
+    active: true,
+    created_at: new Date(),
+    updated_at: new Date()
   })
 }
 
