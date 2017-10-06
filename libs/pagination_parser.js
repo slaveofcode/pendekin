@@ -16,7 +16,7 @@ const getParamWithPageNumber = (pageNumber, limit = LIMIT) => {
     return pageParams
 
   Object.assign(pageParams, {
-    offset: ((pageNumber - 1) * limit) - 1
+    offset: ((pageNumber - 1) * limit)
   })
 
   return pageParams

@@ -67,7 +67,6 @@ describe('Shorten api\'s', () => {
         params: { page: 1 }
       })
 
-
       const responseDataOne = responsePageOne.data
       expect(responseDataOne.rows).to.have.length(20)
       
@@ -76,47 +75,55 @@ describe('Shorten api\'s', () => {
       expect(payloadOne.offset).to.equal(0)
       expect(payloadOne.limit).to.equal(Pagination.LIMIT)
 
-      // const responsePageTwo = await request.get('/api/shorten', { 
-      //   headers: {'Authorization': `Basic ${authKey}`},
-      //   params: { page: 2 }
-      // })
+      try {
+        const responsePageTwo = await request.get('/api/shorten', { 
+          // headers: {'Authorization': `Basic ${authKey}`},
+          params: { page: 2 }
+        })
+
+      } catch (err) {
+        console.log('==================')
+        console.log(err)
+        console.log('==================')
+
+      }
       
-      // const responseDataTwo = responsePageTwo.data
-      // expect(responseDataTwo.rows).to.have.length(1)
+      const responseDataTwo = responsePageTwo.data
+      expect(responseDataTwo.rows).to.have.length(5)
       
-      // const payloadTwo = responseDataTwo.payload
-      // expect(payloadTwo.count).to.equal(21)
-      // expect(payloadTwo.offset).to.equal(19)
-      // expect(payloadTwo.limit).to.equal(Pagination.LIMIT)
+      const payloadTwo = responseDataTwo.payload
+      expect(payloadTwo.count).to.equal(25)
+      expect(payloadTwo.offset).to.equal(20)
+      expect(payloadTwo.limit).to.equal(Pagination.LIMIT)
     })
   })
 
-  describe('Create', () => {
-    it('Should be able to create one shortener', () => {})
-    it('Should be able to create one shortener with custom code', () => {})
-    it('Should be able to create one shortener with prefix code', () => {})
-    it('Should be able to create one shortener with suffix code', () => {})
-    it('Should be able to create one shortener with prefix and suffix code', () => {})
-    it('Should be able to create bulk shorteners', () => {})
-    it('Should be able to create bulk shorteners with custom, prefix and suffix code', () => {})
-  })
+  // describe('Create', () => {
+  //   it('Should be able to create one shortener', () => {})
+  //   it('Should be able to create one shortener with custom code', () => {})
+  //   it('Should be able to create one shortener with prefix code', () => {})
+  //   it('Should be able to create one shortener with suffix code', () => {})
+  //   it('Should be able to create one shortener with prefix and suffix code', () => {})
+  //   it('Should be able to create bulk shorteners', () => {})
+  //   it('Should be able to create bulk shorteners with custom, prefix and suffix code', () => {})
+  // })
 
-  describe('Check', () => {
-    it('Should be able to check custom shortener code', () => {})
-  })
+  // describe('Check', () => {
+  //   it('Should be able to check custom shortener code', () => {})
+  // })
 
-  describe('Edit', () => {
-    it('Should be able to edit shortener item', () => {})
-    it('Should not be able to change expired shortener item', () => {})
-  })
+  // describe('Edit', () => {
+  //   it('Should be able to edit shortener item', () => {})
+  //   it('Should not be able to change expired shortener item', () => {})
+  // })
 
-  describe('Detail', () => {
-    it('Should get corrent shortener item', () => {})
-  })
+  // describe('Detail', () => {
+  //   it('Should get corrent shortener item', () => {})
+  // })
 
-  describe('Delete', () => {
-    it('Should remove shortener item', () => {})
-    it('Should remove bulk of shorteners', () => {})
-  })
+  // describe('Delete', () => {
+  //   it('Should remove shortener item', () => {})
+  //   it('Should remove bulk of shorteners', () => {})
+  // })
 })
 

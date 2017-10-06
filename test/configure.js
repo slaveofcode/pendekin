@@ -1,10 +1,10 @@
 'use strict'
 
+const Promise = require('bluebird')
 const DB = require(`${app_root}/models`)
 const server = require('../server')
 
 before(() => {
-  // before all test is started
   // load env
   require('dotenv').config()
 })
@@ -14,14 +14,15 @@ after(() => {
 })
 
 beforeEach( async () => {
-  
-
-  // run server
-  server.listen('1818')
-
   await DB.sequelize.sync({ force: true })
+  await server.listen('1818')
 })
 
-afterEach(() => {
-  server.close()
+afterEach( async () => {
+  await new Promise((resolve, reject) => {
+    server.close(err => {
+      if (err) return reject(err)
+      resolve()
+    })
+  })
 })

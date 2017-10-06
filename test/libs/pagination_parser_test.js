@@ -7,10 +7,10 @@ const expect = chai.expect
 const assert = chai.assert
 
 const getOffsetNormalLimit = (pageNumber) => {
-  return pageNumber <= 1 ? 0 : (((pageNumber - 1) * pagination_parser.LIMIT) - 1)
+  return pageNumber <= 1 ? 0 : ((pageNumber - 1) * pagination_parser.LIMIT)
 }
 const getOffsetCustomLimit = (pageNumber, limit) => {
-  return pageNumber <= 1 ? 0 : (((pageNumber - 1) * limit) - 1)
+  return pageNumber <= 1 ? 0 : ((pageNumber - 1) * limit)
 }
 
 describe('Pagination Parser', () => {
@@ -24,7 +24,7 @@ describe('Pagination Parser', () => {
 
       const pageTwo = 2
       const pagingParams2 = pagination_parser.getParamWithPageNumber(pageTwo)
-      expect(pagingParams2).to.have.property('offset', 19)
+      expect(pagingParams2).to.have.property('offset', 20)
       expect(pagingParams2).to.have.property('limit', pagination_parser.LIMIT)
     })
 
