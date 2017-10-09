@@ -20,11 +20,12 @@ const pageExtractor = Pagination.parser()
 
 const schema = Joi.object().keys({
   url: Joi.string().trim().lowercase().required(),
-  category_id: Joi.number().optional(),
-  prefix: Joi.string().trim().max(5).optional(),
-  suffix: Joi.string().trim().max(5).optional(),
-  password: Joi.string().optional(),
-  expired_at: Joi.date().iso().optional()
+  category_id: Joi.number(),
+  prefix: Joi.string().trim().max(5),
+  suffix: Joi.string().trim().max(5),
+  password: Joi.string(),
+  expired_at: Joi.date().iso(),
+  custom_code: Joi.string()
 })
 
 router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
@@ -55,11 +56,19 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
       password, 
       expired_at, 
       url, 
-      category_id } = validatedParams
+      category_id,
+      custom_code
+    } = validatedParams
 
+    /**
+     * Checking URL validity
+     */
     if (!ValidUrl.isHttpUri(url) && !ValidUrl.isHttpsUri(url))
       return res.send(new RestifyError.BadRequestError('URL parameter is not valid'))
 
+    /**
+     * Checking category
+     */
     let shorten_category_id = null
     if (!_.isNil(category_id)) {
       const category = await DB.ShortenCategory.findOne({
@@ -72,18 +81,32 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
       shorten_category_id = category.id
     }
 
+    /**
+     * Checking protected password
+     */
     let protected_password = null
     if (!_.isNil(password)) {
       protected_password = await PasswordLib.hashPassword(password)
     }
 
+    /**
+     * Checking expired time
+     */
     let expiredTime = null
     if (!_.isNil(expired_at)) {
       expiredTime = (_.isNil(expired_at)) ? null : moment(expired_at)
     }
 
+    /**
+     * Checking custom code
+     */
+    if (!_.isNil(custom_code)) {
+      if (await Shorten.checkCodeAvailable(custom_code))
+        return res.send(new RestifyError.BadRequestError('Custom Code already exist'))
+    }
+
     const shorten = await DB.ShortenUrl.create({
-      code: CodeGenerator.generate(),
+      code: (custom_code) ? custom_code : CodeGenerator.generate(),
       expired_at: expiredTime,
       url,
       shorten_category_id,
@@ -94,6 +117,7 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
 
     return res.send(HttpStatus.CREATED, Shorten.serializeObj(shorten))
   } catch (err) {
+    console.log(err)
     return next(err)
   }
 })

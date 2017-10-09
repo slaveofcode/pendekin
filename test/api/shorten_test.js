@@ -27,8 +27,8 @@ describe('Shorten api\'s', () => {
         code: CodeGenerator.generate(),
         expired_at: faker.date.future(2018),
         url: faker.internet.url(),
-        prefix: faker.random.word(),
-        suffix: faker.random.word(),
+        prefix: faker.random.alphaNumeric(3),
+        suffix: faker.random.alphaNumeric(3),
         protected_password: faker.internet.password()
       })
 
@@ -55,8 +55,8 @@ describe('Shorten api\'s', () => {
           code: CodeGenerator.generate(),
           expired_at: faker.date.future(2018),
           url: faker.internet.url(),
-          prefix: faker.random.word(),
-          suffix: faker.random.word(),
+          prefix: faker.random.alphaNumeric(2),
+          suffix: faker.random.alphaNumeric(3),
           protected_password: faker.internet.password()
         })
       }
@@ -91,15 +91,120 @@ describe('Shorten api\'s', () => {
     })
   })
 
-  // describe('Create', () => {
-  //   it('Should be able to create one shortener', () => {})
-  //   it('Should be able to create one shortener with custom code', () => {})
-  //   it('Should be able to create one shortener with prefix code', () => {})
-  //   it('Should be able to create one shortener with suffix code', () => {})
-  //   it('Should be able to create one shortener with prefix and suffix code', () => {})
-  //   it('Should be able to create bulk shorteners', () => {})
-  //   it('Should be able to create bulk shorteners with custom, prefix and suffix code', () => {})
-  // })
+  describe('Create', () => {
+
+    it('Should be able to create one shortener', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        expired_at: faker.date.future(2018),
+        url: faker.internet.url(),
+        password: faker.internet.password()
+      }
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+      expect(shortenData).to.be.an('object')
+      expect(shortenData).to.have.keys([
+        'id',
+        'is_index_urls',
+        'is_auto_remove_on_visited',
+        'code',
+        'code_origin',
+        'expired_at',
+        'url',
+        'shorten_category_id',
+        'updated_at',
+        'created_at',
+        'has_password'
+      ])
+    })
+
+    it('Should be able to create one shortener with custom code', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        url: faker.internet.url(),
+        custom_code: 'MAMAMIA'
+      }
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+
+      expect(shortenCode.status).to.equal(201)
+      expect(shortenData).to.be.an('object')
+      expect(shortenData.code).to.equal(params.custom_code)
+    })
+
+    it('Should not be able to create one shortener with custom code with existing code', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        url: faker.internet.url(),
+        custom_code: 'MAMAMIA'
+      }
+
+      await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(400)
+      expect(shortenData.message).to.equal('Custom Code already exist')
+    })
+
+    it('Should be able to create one shortener with prefix code', () => {})
+    it('Should be able to create one shortener with suffix code', () => {})
+    it('Should be able to create one shortener with prefix and suffix code', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        expired_at: faker.date.future(2018),
+        url: faker.internet.url(),
+        prefix: faker.random.alphaNumeric(2),
+        suffix: faker.random.alphaNumeric(2),
+        password: faker.internet.password()
+      }
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+      expect(shortenData).to.be.an('object')
+      expect(shortenData).to.have.keys([
+        'id',
+        'is_index_urls',
+        'is_auto_remove_on_visited',
+        'code',
+        'code_origin',
+        'expired_at',
+        'url',
+        'shorten_category_id',
+        'updated_at',
+        'created_at',
+        'has_password'
+      ])
+    })
+    it('Should be able to create bulk shorteners', () => {})
+    it('Should be able to create bulk shorteners with custom, prefix and suffix code', () => {})
+  })
 
   // describe('Check', () => {
   //   it('Should be able to check custom shortener code', () => {})

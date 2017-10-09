@@ -1,11 +1,24 @@
 'use strict'
 
 const _ = require('lodash')
+const DB = require(`${app_root}/models`)
+
+const getCompiledCode = (prefix, suffix, code) => {
+  let compiledCode = code
+  if (prefix)
+    compiledCode = `${prefix}${compiledCode}`
+  if (suffix)
+    compiledCode = `${compiledCode}${suffix}`
+  return compiledCode
+}
 
 const serializeObj = (shortenCode) => {
   const shortenJSON = shortenCode.toJSON()
 
-  const hasPassword = (shortenJSON.protected_password.length > 0)
+  let hasPassword = false
+  if (shortenJSON.protected_password)
+    hasPassword = (shortenJSON.protected_password.length > 0)
+
   const { code, prefix, suffix } = shortenJSON
   
   const allowedValues = _.omit(shortenJSON, [
@@ -16,12 +29,24 @@ const serializeObj = (shortenCode) => {
   ])
 
   return Object.assign(allowedValues, {
-    code: `${prefix}${code}${suffix}`,
+    code: getCompiledCode(prefix, suffix, code),
     code_origin: code,
-    hasPassword
+    has_password: hasPassword
   })
 }
 
+const checkCodeAvailable = async (codeToCheck) => {
+  const shortenCode = await DB.ShortenUrl.findOne({
+    where: {
+      code: codeToCheck
+    }
+  })
+
+  return _.isNull(shortenCode) ? false : true
+}
+
 module.exports = {
-  serializeObj
+  serializeObj,
+  checkCodeAvailable,
+  getCompiledCode
 }
