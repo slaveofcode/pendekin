@@ -4,14 +4,12 @@ const _ = require('lodash')
 const moment = require('moment')
 const Routing = require('restify-routing')
 const HttpStatus = require('http-status-codes')
-const ValidUrl = require('valid-url')
 const RestifyError = require('restify-errors')
 const Moment = require('moment')
 const Permission = require('../utils/permission')
 const Shorten = require('../utils/shorten')
 const Joi = require(`${app_root}/libs/joi`)
 const DB = require(`${app_root}/models`)
-const PasswordLib = require(`${app_root}/libs/password`)
 const CodeGenerator = require(`${app_root}/libs/code_generator`)
 const Pagination = require(`${app_root}/libs/pagination_parser`)
 
@@ -27,6 +25,8 @@ const schema = Joi.object().keys({
   expired_at: Joi.date().iso(),
   custom_code: Joi.string()
 })
+
+const schemaBulk = Joi.array().items(schema)
 
 router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
@@ -63,7 +63,7 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
     /**
      * Checking URL validity
      */
-    if (!ValidUrl.isHttpUri(url) && !ValidUrl.isHttpsUri(url))
+    if (!Shorten.checkUrlValidity(url))
       return res.send(new RestifyError.BadRequestError('URL parameter is not valid'))
 
     /**
@@ -71,31 +71,20 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
      */
     let shorten_category_id = null
     if (!_.isNil(category_id)) {
-      const category = await DB.ShortenCategory.findOne({
-        where: { id: { $eq: category_id } } 
-      })
-
-      if (!category)
+      shorten_category_id = await Shorten.normalizeCategory(category_id)
+      if (_.isNull(shorten_category_id))
         return res.send(new RestifyError.BadRequestError('Category not found'))
-
-      shorten_category_id = category.id
     }
 
     /**
      * Checking protected password
      */
-    let protected_password = null
-    if (!_.isNil(password)) {
-      protected_password = await PasswordLib.hashPassword(password)
-    }
+    let protected_password = await Shorten.hashPassword(password)
 
     /**
      * Checking expired time
      */
-    let expiredTime = null
-    if (!_.isNil(expired_at)) {
-      expiredTime = (_.isNil(expired_at)) ? null : moment(expired_at)
-    }
+    let expiredTime = Shorten.normalizeExpiredTime(expired_at)
 
     /**
      * Checking custom code
@@ -124,8 +113,63 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
   }
 })
 
-router.post('/bulk', Permission.BasicOrClient(), (req, res, next) => {
+router.post('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
+  const { params } = req
 
+  try {
+    const validatedBulkParams = await Joi.validate(params, schemaBulk)
+    
+    validatedBulkParams.map((param) => {
+      /**
+       * Checking URL validity
+       */
+      if (!Shorten.checkUrlValidity(url))
+        return null
+
+      /**
+       * Checking category
+       */
+      let shorten_category_id = null
+      if (!_.isNil(category_id)) {
+        shorten_category_id = await Shorten.normalizeCategory(category_id)
+        if (_.isNull(shorten_category_id))
+          return null
+      }
+
+      /**
+       * Checking protected password
+       */
+      let protected_password = await Shorten.hashPassword(password)
+
+      /**
+       * Checking expired time
+       */
+      let expiredTime = Shorten.normalizeExpiredTime(expired_at)
+
+      /**
+       * Checking custom code
+       */
+      let customCode = null
+      if (!_.isNil(custom_code)) {
+        customCode = Shorten.getCompiledCode(custom_code, prefix, suffix)
+        if (await Shorten.checkCodeAvailable(customCode))
+          return null
+      }
+
+      return {
+        code: (customCode) ? customCode : CodeGenerator.generate(),
+        expired_at: expiredTime,
+        url,
+        shorten_category_id,
+        prefix,
+        suffix,
+        protected_password
+      }
+    })
+  } catch (err) {
+    console.log(err)
+    return next(err)
+  }
 })
 
 router.post('/check', Permission.BasicOrClient(), (req, res, next) => {

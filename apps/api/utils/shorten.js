@@ -1,7 +1,10 @@
 'use strict'
 
 const _ = require('lodash')
+const moment = require('moment')
+const ValidUrl = require('valid-url')
 const DB = require(`${app_root}/models`)
+const PasswordLib = require(`${app_root}/libs/password`)
 
 const getCompiledCode = (code, prefix, suffix) => {
   let compiledCode = code
@@ -45,8 +48,48 @@ const checkCodeAvailable = async (codeToCheck) => {
   return _.isNull(shortenCode) ? false : true
 }
 
+const normalizeExpiredTime = (expired_at) => {
+  let expiredTime = null
+  if (!_.isNil(expired_at)) {
+    expiredTime = (_.isNil(expired_at)) ? null : moment(expired_at)
+  }
+  return expiredTime
+}
+
+const hashPassword = async (password) => {
+  let protected_password = null
+  if (!_.isNil(password)) {
+    protected_password = await PasswordLib.hashPassword(password)
+  }
+
+  return protected_password
+}
+
+const normalizeCategory = async (category_id) => {
+  let shorten_category_id = null
+  if (!_.isNil(category_id)) {
+    const category = await DB.ShortenCategory.findOne({
+      where: { id: { $eq: category_id } } 
+    })
+
+    return null
+
+    shorten_category_id = category.id
+  }
+
+  return shorten_category_id
+}
+
+const checkUrlValidity = (url) => {
+  return ValidUrl.isHttpUri(url) || ValidUrl.isHttpsUri(url)
+}
+
 module.exports = {
   serializeObj,
   checkCodeAvailable,
-  getCompiledCode
+  getCompiledCode,
+  normalizeExpiredTime,
+  normalizeCategory,
+  hashPassword,
+  checkUrlValidity
 }

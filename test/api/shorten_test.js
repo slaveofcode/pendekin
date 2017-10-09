@@ -223,23 +223,33 @@ describe('Shorten api\'s', () => {
 
       const shortenData = shortenCode.data
       expect(shortenCode.status).to.equal(201)
-      expect(shortenData).to.be.an('object')
-      expect(shortenData).to.have.keys([
-        'id',
-        'is_index_urls',
-        'is_auto_remove_on_visited',
-        'code',
-        'code_origin',
-        'expired_at',
-        'url',
-        'shorten_category_id',
-        'updated_at',
-        'created_at',
-        'has_password'
-      ])
+
+      expect(shortenData.code.substr(0, 2)).to.equal(params.prefix)
+      const startIdxChars = (shortenData.code.length - 2)
+      expect(shortenData.code.substr(startIdxChars, 2)).to.equal(params.suffix)
     })
-    
-    it('Should be able to create bulk shorteners', () => {})
+
+    it('Should be able to create bulk shorteners', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const shortenDatas = []
+      for (let i = 0; i <= 20; i++) {
+        shortenDatas.push({
+          expired_at: faker.date.future(2018),
+          url: faker.internet.url(),
+          password: faker.internet.password()
+        })
+      }
+
+      const shortenCode = await request.post('/api/shorten/bulk', shortenDatas, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+    })
+
     it('Should be able to create bulk shorteners with custom, prefix and suffix code', () => {})
   })
 
