@@ -1,12 +1,14 @@
 'use strict'
 
 const _ = require('lodash')
+const moment = require('moment')
 const Routing = require('restify-routing')
 const HttpStatus = require('http-status-codes')
 const ValidUrl = require('valid-url')
 const RestifyError = require('restify-errors')
 const Moment = require('moment')
 const Permission = require('../utils/permission')
+const Shorten = require('../utils/shorten')
 const Joi = require(`${app_root}/libs/joi`)
 const DB = require(`${app_root}/models`)
 const PasswordLib = require(`${app_root}/libs/password`)
@@ -90,8 +92,7 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
       protected_password
     })
 
-    res.send(shorten)
-    return next()
+    return res.send(HttpStatus.CREATED, Shorten.serializeObj(shorten))
   } catch (err) {
     return next(err)
   }
