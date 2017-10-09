@@ -100,13 +100,15 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
     /**
      * Checking custom code
      */
+    let customCode = null
     if (!_.isNil(custom_code)) {
-      if (await Shorten.checkCodeAvailable(custom_code))
+      customCode = Shorten.getCompiledCode(custom_code, prefix, suffix)
+      if (await Shorten.checkCodeAvailable(customCode))
         return res.send(new RestifyError.BadRequestError('Custom Code already exist'))
     }
 
     const shorten = await DB.ShortenUrl.create({
-      code: (custom_code) ? custom_code : CodeGenerator.generate(),
+      code: (customCode) ? customCode : CodeGenerator.generate(),
       expired_at: expiredTime,
       url,
       shorten_category_id,

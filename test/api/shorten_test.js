@@ -167,8 +167,44 @@ describe('Shorten api\'s', () => {
       expect(shortenData.message).to.equal('Custom Code already exist')
     })
 
-    it('Should be able to create one shortener with prefix code', () => {})
-    it('Should be able to create one shortener with suffix code', () => {})
+    it('Should be able to create one shortener with prefix code', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        url: faker.internet.url(),
+        prefix: 'ME'
+      }
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+      expect(shortenData.code.substr(0, 2)).to.equal(params.prefix)
+    })
+
+    it('Should be able to create one shortener with suffix code', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        url: faker.internet.url(),
+        suffix: 'ERR'
+      }
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+
+      const startIdxChars = (shortenData.code.length - 3)
+      expect(shortenData.code.substr(startIdxChars, 3)).to.equal(params.suffix)
+    })
+
     it('Should be able to create one shortener with prefix and suffix code', async () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey()
@@ -202,6 +238,7 @@ describe('Shorten api\'s', () => {
         'has_password'
       ])
     })
+    
     it('Should be able to create bulk shorteners', () => {})
     it('Should be able to create bulk shorteners with custom, prefix and suffix code', () => {})
   })

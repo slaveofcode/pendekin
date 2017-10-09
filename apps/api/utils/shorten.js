@@ -3,7 +3,7 @@
 const _ = require('lodash')
 const DB = require(`${app_root}/models`)
 
-const getCompiledCode = (prefix, suffix, code) => {
+const getCompiledCode = (code, prefix, suffix) => {
   let compiledCode = code
   if (prefix)
     compiledCode = `${prefix}${compiledCode}`
@@ -29,7 +29,7 @@ const serializeObj = (shortenCode) => {
   ])
 
   return Object.assign(allowedValues, {
-    code: getCompiledCode(prefix, suffix, code),
+    code: getCompiledCode(code, prefix, suffix),
     code_origin: code,
     has_password: hasPassword
   })
