@@ -7,6 +7,7 @@ const CodeGenerator = require(`${app_root}/libs/code_generator`)
 const Pagination = require(`${app_root}/libs/pagination_parser`)
 const request = require('../utils/request')
 const authClient = require('../utils/auth_client')
+const axios = require('axios')
 
 const expect = chai.expect
 
@@ -75,19 +76,11 @@ describe('Shorten api\'s', () => {
       expect(payloadOne.offset).to.equal(0)
       expect(payloadOne.limit).to.equal(Pagination.LIMIT)
 
-      try {
-        const responsePageTwo = await request.get('/api/shorten', { 
-          // headers: {'Authorization': `Basic ${authKey}`},
-          params: { page: 2 }
-        })
-
-      } catch (err) {
-        console.log('==================')
-        console.log(err)
-        console.log('==================')
-
-      }
-      
+      const responsePageTwo = await request.get('/api/shorten', { 
+        headers: {'Authorization': `Basic ${authKey}`},
+        params: { page: 2 }
+      })
+        
       const responseDataTwo = responsePageTwo.data
       expect(responseDataTwo.rows).to.have.length(5)
       

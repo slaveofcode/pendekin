@@ -24,13 +24,12 @@ router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
 
   try {
     const clients = await DB.AuthClient.findAndCountAll(pageParams)
-    res.send({
+    return res.send({
       rows: clients.rows,
       payload: Object.assign({
         count: clients.count
       }, pageParams)
     })
-    return next(err)
   } catch (err) {
     return next(err)
   }

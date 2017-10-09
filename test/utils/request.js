@@ -12,12 +12,12 @@ const inst = axios.create({
 inst.interceptors.request.use(
   function (config) {
     // Do something before request is sent
-    console.log('request will send: '+ config.url)
+    // console.log('request will send: '+ config.url)
     return config
   },
   function (error) {
     // Do something with request error
-    console.log('request send error')
+    // console.log('request send error')
     return Promise.reject(error)
   }
 )
@@ -25,12 +25,12 @@ inst.interceptors.request.use(
 // Add a response interceptor
 inst.interceptors.response.use(
   function (response) {
-    console.log('response received')
+    // console.log('response received')
     // Do something with response data
     return response
   },
   function (error) {
-    console.log('response error')
+    // console.log('response error')
     // Do something with response error
     return Promise.reject(error)
   }

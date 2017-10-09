@@ -31,13 +31,12 @@ router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
 
   try {
     const shortens = await DB.ShortenUrl.findAndCount(pageParams)
-    res.send({
+    return res.send({
       rows: shortens.rows,
       payload: Object.assign({
         count: shortens.count
       }, pageParams)
     })
-    return next(err)
   } catch (err) {
     return next(err)
   }

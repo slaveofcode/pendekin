@@ -22,7 +22,7 @@ router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
 
   try {
     const categories = await DB.ShortenCategory.findAndCountAll(pageParams)
-    res.send({
+    return res.send({
       rows: categories.rows,
       payload: Object.assign(
         {
@@ -31,7 +31,6 @@ router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
         pageParams
       )
     })
-    return next(err)
   } catch (err) {
     return next(err)
   }
