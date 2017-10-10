@@ -299,7 +299,7 @@ describe('Shorten api\'s', () => {
   })
 
   describe('Check', () => {
-    it.only('Should be able to check custom shortener code', async () => {
+    it('Should be able to check custom shortener code', async () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey()
 
