@@ -298,9 +298,33 @@ describe('Shorten api\'s', () => {
     })
   })
 
-  // describe('Check', () => {
-  //   it('Should be able to check custom shortener code', () => {})
-  // })
+  describe('Check', () => {
+    it.only('Should be able to check custom shortener code', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        url: faker.internet.url(),
+        custom_code: 'MAMAMIA'
+      }
+
+      const checkResponse1 = await request.post('/api/shorten/check', { 
+        code: params.custom_code 
+      }, {headers: {'Authorization': `Basic ${authKey}`}})
+
+      await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const checkResponse = await request.post('/api/shorten/check', { 
+        code: params.custom_code 
+      }, {headers: {'Authorization': `Basic ${authKey}`}})
+
+      expect(checkResponse1.status).to.equal(204) // NO Content
+      expect(checkResponse.status).to.equal(409) // Conflict
+
+    })
+  })
 
   // describe('Edit', () => {
   //   it('Should be able to edit shortener item', () => {})

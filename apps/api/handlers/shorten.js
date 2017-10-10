@@ -150,7 +150,7 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
     let customCode = null
     if (!_.isNil(custom_code)) {
       customCode = Shorten.getCompiledCode(custom_code, prefix, suffix)
-      if (await Shorten.checkCodeAvailable(customCode))
+      if (await Shorten.isCodeAvailable(customCode))
         return res.send(new RestifyError.BadRequestError('Custom Code already exist'))
     }
 
@@ -182,9 +182,6 @@ router.post('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
       bulkParams.push(await validateShorten(shortenParam))
     }
 
-    // console.log(bulkParams)
-    // console.log(bulkParams)
-
     const shortens = await DB.ShortenUrl.bulkCreate(bulkParams)
 
     const statusCode = (bulkParams.length < validatedBulkParams.length) 
@@ -193,13 +190,25 @@ router.post('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
 
     return res.send(statusCode, Shorten.serializeListObj(shortens))
   } catch (err) {
-    console.log(err)
     return next(err)
   }
 })
 
-router.post('/check', Permission.BasicOrClient(), (req, res, next) => {
+router.post('/check', Permission.BasicOrClient(), async (req, res, next) => {
+  const { params } = req
 
+  try {
+    const schemaCheck = Joi.object().keys({ code: Joi.string() })
+    const validatedParams = await Joi.validate(params, schemaCheck)
+    const { 
+      code
+    } = validatedParams
+
+    const available = await Shorten.isCodeAvailable(code)
+    return res.send(available ? HttpStatus.CONFLICT : HttpStatus.NO_CONTENT)
+  } catch (err) {
+    return next(err)
+  }
 })
 
 router.put('/:id', Permission.BasicOrClient(), (req, res, next) => {

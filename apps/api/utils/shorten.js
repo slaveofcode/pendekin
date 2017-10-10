@@ -48,7 +48,7 @@ const serializeListObj = (shortensArray) => {
 }
 
 
-const checkCodeAvailable = async (codeToCheck) => {
+const isCodeAvailable = async (codeToCheck) => {
   const shortenCode = await DB.ShortenUrl.findOne({
     where: {
       code: codeToCheck
@@ -102,7 +102,7 @@ const checkUrlValidity = (url) => {
 module.exports = {
   serializeObj,
   serializeListObj,
-  checkCodeAvailable,
+  isCodeAvailable,
   getCompiledCode,
   normalizeExpiredTime,
   normalizeCategory,
