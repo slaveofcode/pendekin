@@ -5,6 +5,7 @@ const faker = require('faker')
 const DB = require(`${app_root}/models`)
 const CodeGenerator = require(`${app_root}/libs/code_generator`)
 const Pagination = require(`${app_root}/libs/pagination_parser`)
+const Password = require(`${app_root}/libs/password`)
 const request = require('../utils/request')
 const authClient = require('../utils/auth_client')
 const axios = require('axios')
@@ -27,7 +28,7 @@ describe('Shorten api\'s', () => {
 
       await DB.ShortenUrl.create({
         code: CodeGenerator.generate(),
-        expired_at: faker.date.future(2018),
+        expired_at: faker.date.future(),
         url: faker.internet.url(),
         prefix: faker.random.alphaNumeric(3),
         suffix: faker.random.alphaNumeric(3),
@@ -55,7 +56,7 @@ describe('Shorten api\'s', () => {
       for (let i = 0; i <= 24; i++) { // 25 items
         shortens.push({
           code: CodeGenerator.generate(),
-          expired_at: faker.date.future(2018),
+          expired_at: faker.date.future(),
           url: faker.internet.url(),
           prefix: faker.random.alphaNumeric(2),
           suffix: faker.random.alphaNumeric(3),
@@ -100,7 +101,7 @@ describe('Shorten api\'s', () => {
       const authKey = await authClient.getAuthorizationKey()
 
       const params = {
-        expired_at: faker.date.future(2018),
+        expired_at: faker.date.future(),
         url: faker.internet.url(),
         password: faker.internet.password()
       }
@@ -212,7 +213,7 @@ describe('Shorten api\'s', () => {
       const authKey = await authClient.getAuthorizationKey()
 
       const params = {
-        expired_at: faker.date.future(2018),
+        expired_at: faker.date.future(),
         url: faker.internet.url(),
         prefix: faker.random.alphaNumeric(2),
         suffix: faker.random.alphaNumeric(2),
@@ -238,7 +239,7 @@ describe('Shorten api\'s', () => {
       const shortenDatas = []
       for (let i = 0; i <= 4; i++) {
         shortenDatas.push({
-          expired_at: faker.date.future(2018),
+          expired_at: faker.date.future(),
           url: faker.internet.url(),
           password: faker.internet.password()
         })
@@ -275,7 +276,7 @@ describe('Shorten api\'s', () => {
       const shortenDatas = []
       for (let i = 0; i <= 4; i++) {
         shortenDatas.push({
-          expired_at: faker.date.future(2018),
+          expired_at: faker.date.future(),
           url: faker.internet.url(),
           password: faker.internet.password(),
           prefix: PREFIX,
@@ -326,10 +327,129 @@ describe('Shorten api\'s', () => {
     })
   })
 
-  // describe('Edit', () => {
-  //   it('Should be able to edit shortener item', () => {})
-  //   it('Should not be able to change expired shortener item', () => {})
-  // })
+  describe('Edit', () => {
+    it('Should be able to edit url shortener item', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const param = {
+        expired_at: faker.date.future(),
+        url: faker.internet.url(),
+        password: faker.internet.password()
+      }
+
+      const paramEdit = {
+        url: faker.internet.url()
+      }
+
+      const headers = { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      }
+
+      const shorten = await request.post('/api/shorten', param, headers)
+
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+
+      const shortenData = shortenEdit.data
+      expect(shortenEdit.status).to.equal(200)
+      expect(shortenData.url).to.equal(paramEdit.url)
+    })
+
+    it('Should be able to change expired shortener item', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const param = {
+        expired_at: faker.date.future(),
+        url: faker.internet.url(),
+        password: faker.internet.password()
+      }
+
+      const paramEdit = {
+        expired_at: faker.date.future(5)
+      }
+
+      const headers = { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      }
+
+      const shorten = await request.post('/api/shorten', param, headers)
+
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+
+      const shortenData = shortenEdit.data
+      expect(shortenEdit.status).to.equal(200)
+      expect(shortenData.expired_at).to.equal(paramEdit.expired_at.toISOString())
+    })
+
+    it('Should be able to change password shortener item', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const param = {
+        expired_at: faker.date.future(),
+        url: faker.internet.url(),
+        password: faker.internet.password()
+      }
+
+      const paramEdit = {
+        password: faker.internet.password()
+      }
+
+      const headers = { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      }
+
+      const shorten = await request.post('/api/shorten', param, headers)
+
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+
+      const shortenData = shortenEdit.data
+      expect(shortenEdit.status).to.equal(200)
+    })
+
+    it('Should be able to change category of shortener item', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const headers = { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      }
+
+      const createCategory = async () => {
+        const CATEGORY_NAME = faker.lorem.words(4)
+        const CATEGORY_DESC = faker.lorem.sentence(10)
+
+        return await request.post(`/api/category`, {
+          name: CATEGORY_NAME,
+          description: CATEGORY_DESC
+        }, headers)
+      }
+
+      const categoryOne = await createCategory()
+      const categoryTwo = await createCategory()
+
+
+      const param = {
+        expired_at: faker.date.future(),
+        url: faker.internet.url(),
+        password: faker.internet.password(),
+        category_id: categoryOne.data.id
+      }
+
+      const paramEdit = {
+        category_id: categoryTwo.data.id
+      }
+
+      const shorten = await request.post('/api/shorten', param, headers)
+
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+
+      const shortenData = shortenEdit.data
+      expect(shortenEdit.status).to.equal(200)
+      expect(shortenData.shorten_category_id).to.equal(categoryTwo.data.id)
+    })
+  })
 
   // describe('Detail', () => {
   //   it('Should get corrent shortener item', () => {})

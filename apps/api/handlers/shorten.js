@@ -26,65 +26,15 @@ const schema = Joi.object().keys({
   custom_code: Joi.string()
 })
 
+const schemaEdit = Joi.object().keys({
+  id: Joi.string().required(),
+  url: Joi.string().trim().lowercase(),
+  category_id: Joi.string(),
+  password: Joi.string(),
+  expired_at: Joi.date().iso(),
+})
+
 const schemaBulk = Joi.array().items(schema)
-
-const validateShorten = async (params) => {
-  const {
-    suffix, 
-    prefix, 
-    password, 
-    expired_at, 
-    url, 
-    category_id,
-    custom_code
-  } = params
-
-  /**
-   * Checking URL validity
-   */
-  if (!Shorten.checkUrlValidity(url))
-    return null
-
-  /**
-   * Checking category
-   */
-  let shorten_category_id = null
-  if (!_.isNil(category_id)) {
-    shorten_category_id = await Shorten.normalizeCategory(category_id)
-    if (_.isNull(shorten_category_id))
-      return null
-  }
-
-  /**
-   * Checking protected password
-   */
-  let protected_password = await Shorten.hashPassword(password)
-
-  /**
-   * Checking expired time
-   */
-  let expiredTime = Shorten.normalizeExpiredTime(expired_at)
-
-  /**
-   * Checking custom code
-   */
-  let customCode = null
-  if (!_.isNil(custom_code)) {
-    customCode = Shorten.getCompiledCode(custom_code, prefix, suffix)
-    if (await Shorten.checkCodeAvailable(customCode))
-      return null
-  }
-
-  return {
-    code: (customCode) ? customCode : CodeGenerator.generate(),
-    expired_at: expiredTime,
-    url,
-    shorten_category_id,
-    prefix,
-    suffix,
-    protected_password
-  }
-}
 
 router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
@@ -170,7 +120,6 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
   }
 })
 
-
 router.post('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
 
@@ -179,7 +128,7 @@ router.post('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
     
     const bulkParams = []
     for (let shortenParam of validatedBulkParams) {
-      bulkParams.push(await validateShorten(shortenParam))
+      bulkParams.push(await Shorten.validateShorten(shortenParam))
     }
 
     const shortens = await DB.ShortenUrl.bulkCreate(bulkParams)
@@ -211,7 +160,74 @@ router.post('/check', Permission.BasicOrClient(), async (req, res, next) => {
   }
 })
 
-router.put('/:id', Permission.BasicOrClient(), (req, res, next) => {
+router.put('/:id', Permission.BasicOrClient(), async (req, res, next) => {
+  const { params } = req
+
+  try {
+    const validatedParams = await Joi.validate(params, schemaEdit)
+    const {
+      id,
+      url,
+      password,
+      category_id,
+      expired_at
+    } = validatedParams
+
+    // check id is exist
+    const shorten = await DB.ShortenUrl.findOne({
+      where: { id: { $eq: id } } 
+    })
+
+    if (_.isNull(shorten))
+      return res.send(new RestifyError.NotFoundError('Item could not be found'))
+    
+    const shortenUpdateParam = {}
+    
+    if (url) {
+      if (!Shorten.checkUrlValidity(url))
+        return res.send(new RestifyError.BadRequestError('URL parameter is not valid'))
+      
+      Object.assign(shortenUpdateParam, { url })
+    }
+
+    /**
+     * Checking category
+     */
+    let shorten_category_id = null
+    if (!_.isNil(category_id)) {
+      shorten_category_id = await Shorten.normalizeCategory(category_id)
+      if (_.isNull(shorten_category_id))
+        return res.send(new RestifyError.BadRequestError('Category not found'))
+
+      Object.assign(shortenUpdateParam, { shorten_category_id })
+    }
+
+    /**
+     * Checking protected password
+     */
+    if (password) {
+      let protected_password = await Shorten.hashPassword(password)
+      Object.assign(shortenUpdateParam, { protected_password })
+    }
+
+    /**
+     * Checking expired time
+     */
+    if (expired_at) {
+      Object.assign(shortenUpdateParam, { expired_at: Shorten.normalizeExpiredTime(expired_at) })
+    }
+    
+    await shorten.update(shortenUpdateParam)
+
+    return res.send(HttpStatus.OK, Shorten.serializeObj(shorten))
+
+  } catch (err) {
+    // console.log(err)
+    return next(err)
+  }
+})
+
+router.post('/index', Permission.BasicOrClient(), (req, res, next) => {
 
 })
 

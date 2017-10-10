@@ -5,6 +5,8 @@ const moment = require('moment')
 const ValidUrl = require('valid-url')
 const DB = require(`${app_root}/models`)
 const PasswordLib = require(`${app_root}/libs/password`)
+const CodeGenerator = require(`${app_root}/libs/code_generator`)
+
 
 const getCompiledCode = (code, prefix, suffix) => {
   let compiledCode = code
@@ -84,19 +86,76 @@ const normalizeCategory = async (category_id) => {
         where: { id: { $eq: category_id } } 
       })
 
-      return null
+      if (_.isNull(category))
+        return null
 
       shorten_category_id = category.id
     }
-  } catch (err) {
-
-  }
+  } catch (err) {}
 
   return shorten_category_id
 }
 
 const checkUrlValidity = (url) => {
   return ValidUrl.isHttpUri(url) || ValidUrl.isHttpsUri(url)
+}
+
+const validateShorten = async (params) => {
+  const {
+    suffix, 
+    prefix, 
+    password, 
+    expired_at, 
+    url, 
+    category_id,
+    custom_code
+  } = params
+
+  /**
+   * Checking URL validity
+   */
+  if (!checkUrlValidity(url))
+    return null
+
+  /**
+   * Checking category
+   */
+  let shorten_category_id = null
+  if (!_.isNil(category_id)) {
+    shorten_category_id = await normalizeCategory(category_id)
+    if (_.isNull(shorten_category_id))
+      return null
+  }
+
+  /**
+   * Checking protected password
+   */
+  let protected_password = await hashPassword(password)
+
+  /**
+   * Checking expired time
+   */
+  let expiredTime = normalizeExpiredTime(expired_at)
+
+  /**
+   * Checking custom code
+   */
+  let customCode = null
+  if (!_.isNil(custom_code)) {
+    customCode = getCompiledCode(custom_code, prefix, suffix)
+    if (await checkCodeAvailable(customCode))
+      return null
+  }
+
+  return {
+    code: (customCode) ? customCode : CodeGenerator.generate(),
+    expired_at: expiredTime,
+    url,
+    shorten_category_id,
+    prefix,
+    suffix,
+    protected_password
+  }
 }
 
 module.exports = {
@@ -107,5 +166,6 @@ module.exports = {
   normalizeExpiredTime,
   normalizeCategory,
   hashPassword,
-  checkUrlValidity
+  checkUrlValidity,
+  validateShorten
 }
