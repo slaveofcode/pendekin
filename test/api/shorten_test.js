@@ -342,13 +342,13 @@ describe('Shorten api\'s', () => {
         url: faker.internet.url()
       }
 
-      const headers = { 
+      const config = { 
         headers: {'Authorization': `Basic ${authKey}`}
       }
 
-      const shorten = await request.post('/api/shorten', param, headers)
+      const shorten = await request.post('/api/shorten', param, config)
 
-      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, config)
 
       const shortenData = shortenEdit.data
       expect(shortenEdit.status).to.equal(200)
@@ -369,13 +369,13 @@ describe('Shorten api\'s', () => {
         expired_at: faker.date.future(5)
       }
 
-      const headers = { 
+      const config = { 
         headers: {'Authorization': `Basic ${authKey}`}
       }
 
-      const shorten = await request.post('/api/shorten', param, headers)
+      const shorten = await request.post('/api/shorten', param, config)
 
-      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, config)
 
       const shortenData = shortenEdit.data
       expect(shortenEdit.status).to.equal(200)
@@ -396,13 +396,13 @@ describe('Shorten api\'s', () => {
         password: faker.internet.password()
       }
 
-      const headers = { 
+      const config = { 
         headers: {'Authorization': `Basic ${authKey}`}
       }
 
-      const shorten = await request.post('/api/shorten', param, headers)
+      const shorten = await request.post('/api/shorten', param, config)
 
-      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, config)
 
       const shortenData = shortenEdit.data
       expect(shortenEdit.status).to.equal(200)
@@ -412,7 +412,7 @@ describe('Shorten api\'s', () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey()
 
-      const headers = { 
+      const config = { 
         headers: {'Authorization': `Basic ${authKey}`}
       }
 
@@ -423,7 +423,7 @@ describe('Shorten api\'s', () => {
         return await request.post(`/api/category`, {
           name: CATEGORY_NAME,
           description: CATEGORY_DESC
-        }, headers)
+        }, config)
       }
 
       const categoryOne = await createCategory()
@@ -441,9 +441,9 @@ describe('Shorten api\'s', () => {
         category_id: categoryTwo.data.id
       }
 
-      const shorten = await request.post('/api/shorten', param, headers)
+      const shorten = await request.post('/api/shorten', param, config)
 
-      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, headers)
+      const shortenEdit = await request.put(`/api/shorten/${shorten.data.id}`, paramEdit, config)
 
       const shortenData = shortenEdit.data
       expect(shortenEdit.status).to.equal(200)
@@ -451,9 +451,31 @@ describe('Shorten api\'s', () => {
     })
   })
 
-  // describe('Detail', () => {
-  //   it('Should get corrent shortener item', () => {})
-  // })
+  describe('Detail', () => {
+    it('Should get correct shortener item', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        expired_at: faker.date.future(),
+        url: faker.internet.url(),
+        password: faker.internet.password()
+      }
+
+      const config = { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      }
+
+      const shorten = await request.post('/api/shorten', params, config)
+
+      const shortenCode = await request.get(`/api/shorten/${shorten.data.id}`, config)
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(200)
+      expect(shortenData.url).to.equal(params.url)
+      expect(shortenData).to.be.a('object')
+    })
+  })
 
   // describe('Delete', () => {
   //   it('Should remove shortener item', () => {})

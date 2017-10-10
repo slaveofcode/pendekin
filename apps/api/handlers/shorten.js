@@ -53,6 +53,23 @@ router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
   }
 })
 
+router.get('/:id', Permission.BasicOrClient(), async (req, res, next) => {
+  const { params } = req
+
+  try {
+    const shorten = await DB.ShortenUrl.findOne({
+      where: { id: { $eq: params.id } } 
+    })
+
+    if (_.isNull(shorten))
+      res.send(RestifyError.NotFoundError('Item not found'))
+
+    return res.send(HttpStatus.OK, Shorten.serializeObj(shorten))
+  } catch (err) {
+    return next(err)
+  }
+})
+
 router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
 
@@ -173,7 +190,6 @@ router.put('/:id', Permission.BasicOrClient(), async (req, res, next) => {
       expired_at
     } = validatedParams
 
-    // check id is exist
     const shorten = await DB.ShortenUrl.findOne({
       where: { id: { $eq: id } } 
     })
@@ -222,7 +238,6 @@ router.put('/:id', Permission.BasicOrClient(), async (req, res, next) => {
     return res.send(HttpStatus.OK, Shorten.serializeObj(shorten))
 
   } catch (err) {
-    // console.log(err)
     return next(err)
   }
 })
