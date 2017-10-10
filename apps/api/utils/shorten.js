@@ -16,8 +16,11 @@ const getCompiledCode = (code, prefix, suffix) => {
 }
 
 const serializeObj = (shortenCode) => {
-  const shortenJSON = shortenCode.toJSON()
 
+  const shortenJSON = (!_.isPlainObject(shortenCode)) 
+    ? shortenCode.toJSON() 
+    : shortenCode
+  
   let hasPassword = false
   if (shortenJSON.protected_password)
     hasPassword = (shortenJSON.protected_password.length > 0)
@@ -37,6 +40,13 @@ const serializeObj = (shortenCode) => {
     has_password: hasPassword
   })
 }
+
+const serializeListObj = (shortensArray) => {
+  return shortensArray.map((shorten) => {
+    return serializeObj(shorten)
+  })
+}
+
 
 const checkCodeAvailable = async (codeToCheck) => {
   const shortenCode = await DB.ShortenUrl.findOne({
@@ -67,14 +77,19 @@ const hashPassword = async (password) => {
 
 const normalizeCategory = async (category_id) => {
   let shorten_category_id = null
-  if (!_.isNil(category_id)) {
-    const category = await DB.ShortenCategory.findOne({
-      where: { id: { $eq: category_id } } 
-    })
 
-    return null
+  try {
+    if (!_.isNil(category_id)) {
+      const category = await DB.ShortenCategory.findOne({
+        where: { id: { $eq: category_id } } 
+      })
 
-    shorten_category_id = category.id
+      return null
+
+      shorten_category_id = category.id
+    }
+  } catch (err) {
+
   }
 
   return shorten_category_id
@@ -86,6 +101,7 @@ const checkUrlValidity = (url) => {
 
 module.exports = {
   serializeObj,
+  serializeListObj,
   checkCodeAvailable,
   getCompiledCode,
   normalizeExpiredTime,

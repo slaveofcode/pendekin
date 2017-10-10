@@ -18,7 +18,7 @@ const pageExtractor = Pagination.parser()
 
 const schema = Joi.object().keys({
   url: Joi.string().trim().lowercase().required(),
-  category_id: Joi.number(),
+  category_id: Joi.string(),
   prefix: Joi.string().trim().max(5),
   suffix: Joi.string().trim().max(5),
   password: Joi.string(),
@@ -27,6 +27,64 @@ const schema = Joi.object().keys({
 })
 
 const schemaBulk = Joi.array().items(schema)
+
+const validateShorten = async (params) => {
+  const {
+    suffix, 
+    prefix, 
+    password, 
+    expired_at, 
+    url, 
+    category_id,
+    custom_code
+  } = params
+
+  /**
+   * Checking URL validity
+   */
+  if (!Shorten.checkUrlValidity(url))
+    return null
+
+  /**
+   * Checking category
+   */
+  let shorten_category_id = null
+  if (!_.isNil(category_id)) {
+    shorten_category_id = await Shorten.normalizeCategory(category_id)
+    if (_.isNull(shorten_category_id))
+      return null
+  }
+
+  /**
+   * Checking protected password
+   */
+  let protected_password = await Shorten.hashPassword(password)
+
+  /**
+   * Checking expired time
+   */
+  let expiredTime = Shorten.normalizeExpiredTime(expired_at)
+
+  /**
+   * Checking custom code
+   */
+  let customCode = null
+  if (!_.isNil(custom_code)) {
+    customCode = Shorten.getCompiledCode(custom_code, prefix, suffix)
+    if (await Shorten.checkCodeAvailable(customCode))
+      return null
+  }
+
+  return {
+    code: (customCode) ? customCode : CodeGenerator.generate(),
+    expired_at: expiredTime,
+    url,
+    shorten_category_id,
+    prefix,
+    suffix,
+    protected_password
+  }
+}
 
 router.get('/', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
@@ -108,10 +166,10 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
 
     return res.send(HttpStatus.CREATED, Shorten.serializeObj(shorten))
   } catch (err) {
-    console.log(err)
     return next(err)
   }
 })
+
 
 router.post('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
@@ -119,53 +177,21 @@ router.post('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
   try {
     const validatedBulkParams = await Joi.validate(params, schemaBulk)
     
-    validatedBulkParams.map((param) => {
-      /**
-       * Checking URL validity
-       */
-      if (!Shorten.checkUrlValidity(url))
-        return null
+    const bulkParams = []
+    for (let shortenParam of validatedBulkParams) {
+      bulkParams.push(await validateShorten(shortenParam))
+    }
 
-      /**
-       * Checking category
-       */
-      let shorten_category_id = null
-      if (!_.isNil(category_id)) {
-        shorten_category_id = await Shorten.normalizeCategory(category_id)
-        if (_.isNull(shorten_category_id))
-          return null
-      }
+    // console.log(bulkParams)
+    // console.log(bulkParams)
 
-      /**
-       * Checking protected password
-       */
-      let protected_password = await Shorten.hashPassword(password)
+    const shortens = await DB.ShortenUrl.bulkCreate(bulkParams)
 
-      /**
-       * Checking expired time
-       */
-      let expiredTime = Shorten.normalizeExpiredTime(expired_at)
+    const statusCode = (bulkParams.length < validatedBulkParams.length) 
+      ? HttpStatus.MULTI_STATUS 
+      : HttpStatus.CREATED
 
-      /**
-       * Checking custom code
-       */
-      let customCode = null
-      if (!_.isNil(custom_code)) {
-        customCode = Shorten.getCompiledCode(custom_code, prefix, suffix)
-        if (await Shorten.checkCodeAvailable(customCode))
-          return null
-      }
-
-      return {
-        code: (customCode) ? customCode : CodeGenerator.generate(),
-        expired_at: expiredTime,
-        url,
-        shorten_category_id,
-        prefix,
-        suffix,
-        protected_password
-      }
-    })
+    return res.send(statusCode, Shorten.serializeListObj(shortens))
   } catch (err) {
     console.log(err)
     return next(err)

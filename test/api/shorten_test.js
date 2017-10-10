@@ -11,6 +11,8 @@ const axios = require('axios')
 
 const expect = chai.expect
 
+chai.should();
+chai.use(require('chai-things'))
 
 describe('Shorten api\'s', () => {
   describe('List', () => {
@@ -234,7 +236,7 @@ describe('Shorten api\'s', () => {
       const authKey = await authClient.getAuthorizationKey()
 
       const shortenDatas = []
-      for (let i = 0; i <= 20; i++) {
+      for (let i = 0; i <= 4; i++) {
         shortenDatas.push({
           expired_at: faker.date.future(2018),
           url: faker.internet.url(),
@@ -248,9 +250,52 @@ describe('Shorten api\'s', () => {
 
       const shortenData = shortenCode.data
       expect(shortenCode.status).to.equal(201)
+      expect(shortenData).to.be.an('array')
+      shortenData.should.all.have.keys([
+        'id',
+        'is_index_urls',
+        'is_auto_remove_on_visited',
+        'code',
+        'code_origin',
+        'expired_at',
+        'url',
+        'shorten_category_id',
+        'updated_at',
+        'created_at',
+        'has_password'
+      ])
     })
 
-    it('Should be able to create bulk shorteners with custom, prefix and suffix code', () => {})
+    it('Should be able to create bulk shorteners with custom, prefix and suffix code', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const PREFIX = faker.random.alphaNumeric(2)
+      const SUFFIX = faker.random.alphaNumeric(2)
+      const shortenDatas = []
+      for (let i = 0; i <= 4; i++) {
+        shortenDatas.push({
+          expired_at: faker.date.future(2018),
+          url: faker.internet.url(),
+          password: faker.internet.password(),
+          prefix: PREFIX,
+          suffix: SUFFIX,
+        })
+      }
+
+      const shortenCode = await request.post('/api/shorten/bulk', shortenDatas, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+      expect(shortenData).to.be.an('array')
+      for (let shorten of shortenData) {
+        expect(shorten.code.substr(0, 2)).to.equal(PREFIX)
+        const startIdxChars = (shorten.code.length - 2)
+        expect(shorten.code.substr(startIdxChars, 2)).to.equal(SUFFIX)
+      }
+    })
   })
 
   // describe('Check', () => {
