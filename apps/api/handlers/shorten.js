@@ -58,11 +58,11 @@ router.get('/:id', Permission.BasicOrClient(), async (req, res, next) => {
 
   try {
     const shorten = await DB.ShortenUrl.findOne({
-      where: { id: { $eq: params.id } } 
+      where: { id: { $eq: params.id } }
     })
-
+    
     if (_.isNull(shorten))
-      res.send(RestifyError.NotFoundError('Item not found'))
+      return res.send(new RestifyError.NotFoundError('Item not found'))
 
     return res.send(HttpStatus.OK, Shorten.serializeObj(shorten))
   } catch (err) {
@@ -242,13 +242,31 @@ router.put('/:id', Permission.BasicOrClient(), async (req, res, next) => {
   }
 })
 
+router.delete('/:id', Permission.BasicOrClient(), async (req, res, next) => {
+  const { params } = req
+
+  try {
+    const shorten = await DB.ShortenUrl.findOne({
+      where: { id: { $eq: params.id } } 
+    })
+
+    if (_.isNull(shorten) || !_.isNull(shorten.deleted_at))
+      return res.send(RestifyError.NotFoundError('Item not found'))
+
+    await shorten.destroy()
+
+    return (!_.isNull(shorten.deleted_at)) 
+      ? res.send(HttpStatus.NO_CONTENT)
+      : res.send(HttpStatus.BAD_REQUEST)
+  } catch (err) {
+    return next(err)
+  }
+})
+
 router.post('/index', Permission.BasicOrClient(), (req, res, next) => {
 
 })
 
-router.delete('/:id', Permission.BasicOrClient(), (req, res, next) => {
-
-})
 
 router.delete('/bulk', Permission.BasicOrClient(), (req, res, next) => {
 

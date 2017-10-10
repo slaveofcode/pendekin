@@ -477,9 +477,30 @@ describe('Shorten api\'s', () => {
     })
   })
 
-  // describe('Delete', () => {
-  //   it('Should remove shortener item', () => {})
-  //   it('Should remove bulk of shorteners', () => {})
-  // })
+  describe('Delete', () => {
+    it('Should remove shortener item', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        url: faker.internet.url()
+      }
+
+      const config = { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      }
+
+      const shorten = await request.post('/api/shorten', params, config)
+      const shortenCode = await request.delete(`/api/shorten/${shorten.data.id}`, config)
+
+      expect(shortenCode.status).to.equal(204) // No Content
+
+      const deletedShortenCode = await request.get(`/api/shorten/${shorten.data.id}`, config)
+
+      expect(deletedShortenCode.status).to.equal(404) // No Content
+      expect(deletedShortenCode.data.message).to.equal('Item not found')
+    })
+    it('Should remove bulk of shorteners', () => {})
+  })
 })
 
