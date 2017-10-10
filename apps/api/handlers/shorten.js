@@ -60,7 +60,7 @@ router.get('/:id', Permission.BasicOrClient(), async (req, res, next) => {
     const shorten = await DB.ShortenUrl.findOne({
       where: { id: { $eq: params.id } }
     })
-    
+
     if (_.isNull(shorten))
       return res.send(new RestifyError.NotFoundError('Item not found'))
 
@@ -263,14 +263,30 @@ router.delete('/:id', Permission.BasicOrClient(), async (req, res, next) => {
   }
 })
 
+router.delete('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
+  const { params } = req
+
+  try {
+
+    const schemaIds = Joi.array().items(Joi.string())
+    const validatedParams = await Joi.validate(params, schemaIds)
+
+    const shortens = await DB.ShortenUrl.findAll({
+      where: { id: { $in: validatedParams } } 
+    })
+
+    for (let shorten of shortens) {
+      await shorten.destroy()
+    }
+
+    return res.send(HttpStatus.MULTI_STATUS)
+  } catch (err) {
+    return next(err)
+  }
+})
+
 router.post('/index', Permission.BasicOrClient(), (req, res, next) => {
 
 })
-
-
-router.delete('/bulk', Permission.BasicOrClient(), (req, res, next) => {
-
-})
-
 
 module.exports = router
