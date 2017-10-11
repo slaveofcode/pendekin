@@ -1,5 +1,6 @@
 'use strict'
 
+const _ = require('lodash')
 const RestifyError = require('restify-errors')
 const Routing = require('restify-routing')
 const moment = require('moment')
@@ -27,20 +28,22 @@ router.get('/:code', async (req, res, next) => {
      */
     const shortenExpiredTime = moment(shorten.expired_at)
     const currentTime = moment()
-    if (shortenExpiredTime.diff(currentTime) < 0)
+    if (shortenExpiredTime.diff(currentTime, 'seconds') < 0)
       return res.send(new RestifyError.NotFoundError('The page has been expired'))
 
     /**
      * Check for password,
      * if password is exist then redirect to password-required page
      */
-    return res.redirect(`${code}/password-required`)
+    if (shorten.protected_password)
+      return res.redirect(`${code}/password-required`)
 
     /**
      * Check for index url type
      */
     if (shorten.is_index_urls) {
       // fetch all child urls 
+
       // render html index here
     }
 
