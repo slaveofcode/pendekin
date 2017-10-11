@@ -2,6 +2,7 @@
 
 const _ = require('lodash')
 const Routing = require('restify-routing')
+const RestifyError = require('restify-errors')
 const HttpStatus = require('http-status-codes')
 const Permission = require('../utils/permission')
 const Joi = require(`${app_root}/libs/joi`)
@@ -49,7 +50,7 @@ router.get('/:id', Permission.BasicOrClient(), async (req, res, next) => {
     })
   
     if (_.isNull(category))
-      return res.send(404, 'Not Found')
+      return res.send(new RestifyError.NotFoundError('Category not found'))
     else
       return res.send(category)
   } catch (err) {
