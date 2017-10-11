@@ -108,7 +108,8 @@ const validateShorten = async (params) => {
     expired_at, 
     url, 
     category_id,
-    custom_code
+    custom_code,
+    parent_id
   } = params
 
   /**
@@ -154,7 +155,8 @@ const validateShorten = async (params) => {
     shorten_category_id,
     prefix,
     suffix,
-    protected_password
+    protected_password,
+    parent_id
   }
 }
 

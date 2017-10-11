@@ -24,7 +24,8 @@ const schema = Joi.object().keys({
   password: Joi.string(),
   expired_at: Joi.date().iso(),
   custom_code: Joi.string(),
-  auto_removed: Joi.boolean().default(false)
+  auto_removed: Joi.boolean().default(false),
+  is_index: Joi.boolean().default(false)
 })
 
 const schemaEdit = Joi.object().keys({
@@ -84,7 +85,8 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
       url, 
       category_id,
       custom_code,
-      auto_removed:is_auto_remove_on_visited
+      auto_removed:is_auto_remove_on_visited,
+      is_index:is_index_urls
     } = validatedParams
 
     /**
@@ -131,7 +133,8 @@ router.post('/', Permission.BasicOrClient(), async (req, res, next) => {
       prefix,
       suffix,
       protected_password,
-      is_auto_remove_on_visited
+      is_auto_remove_on_visited,
+      is_index_urls
     })
 
     return res.send(HttpStatus.CREATED, Shorten.serializeObj(shorten))
@@ -285,81 +288,51 @@ router.post('/bulk/delete', Permission.BasicOrClient(), async (req, res, next) =
 
     await Promise.all(promises)
 
-    return res.send(HttpStatus.MULTI_STATUS)
+    return res.send(HttpStatus.NO_CONTENT)
   } catch (err) {
     return next(err)
   }
 })
 
-router.post('/index', Permission.BasicOrClient(), async (req, res, next) => {
+router.post('/items', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
 
   try {
-    const validatedParams = await Joi.validate(params, schema)
+    const schemaItems = Joi.object().keys({
+      parent_id: Joi.string().required(),
+      items: schemaBulk
+    })
+    
+    const validatedParams = await Joi.validate(params, schemaItems)
+
     const { 
-      suffix, 
-      prefix, 
-      password, 
-      expired_at, 
-      url, 
-      category_id,
-      custom_code
+      parent_id, 
+      items
     } = validatedParams
-
-    /**
-     * Checking URL validity
-     */
-    if (!Shorten.checkUrlValidity(url))
-      return res.send(new RestifyError.BadRequestError('URL parameter is not valid'))
-
-    /**
-     * Checking category
-     */
-    let shorten_category_id = null
-    if (!_.isNil(category_id)) {
-      shorten_category_id = await Shorten.normalizeCategory(category_id)
-      if (_.isNull(shorten_category_id))
-        return res.send(new RestifyError.BadRequestError('Category not found'))
-    }
-
-    /**
-     * Checking protected password
-     */
-    let protected_password = await Shorten.hashPassword(password)
-
-    /**
-     * Checking expired time
-     */
-    let expiredTime = Shorten.normalizeExpiredTime(expired_at)
-
-    /**
-     * Checking custom code
-     */
-    let customCode = null
-    if (!_.isNil(custom_code)) {
-      customCode = Shorten.getCompiledCode(custom_code, prefix, suffix)
-      if (await Shorten.isCodeAvailable(customCode))
-        return res.send(new RestifyError.BadRequestError('Custom Code already exist'))
-    }
-
-    const shorten = await DB.ShortenUrl.create({
-      code: (customCode) ? customCode : CodeGenerator.generate(),
-      expired_at: expiredTime,
-      url,
-      shorten_category_id,
-      prefix,
-      suffix,
-      protected_password
+    
+    const shorten = await DB.ShortenUrl.findOne({
+      where: { id: { $eq: parent_id } }
     })
 
-    return res.send(HttpStatus.CREATED, Shorten.serializeObj(shorten))
+    if (_.isNull(shorten))
+      return res.send(new RestifyError.NotFoundError('Item not found'))
+    
+    const bulkParams = []
+    for (let shortenParam of items) {
+      Object.assign(shortenParam, { parent_id })
+      bulkParams.push(await Shorten.validateShorten(shortenParam))
+    }
+
+    const shortens = await DB.ShortenUrl.bulkCreate(bulkParams)
+
+    const statusCode = (bulkParams.length < items.length) 
+      ? HttpStatus.MULTI_STATUS 
+      : HttpStatus.CREATED
+
+    return res.send(statusCode, Shorten.serializeListObj(shortens))
   } catch (err) {
     return next(err)
   }
-})
-
-router.post('/index/:indexId/item', Permission.BasicOrClient(), (req, res, next) => {
-
 })
 
 module.exports = router

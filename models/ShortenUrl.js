@@ -9,6 +9,10 @@ module.exports = function (sequelize, DataTypes) {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4
       },
+      parent_id: {
+        type: DataTypes.UUID,
+        allowNull: true
+      },
       shorten_category_id: DataTypes.UUID,
       prefix: {
         type: DataTypes.STRING,

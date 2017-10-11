@@ -113,8 +113,10 @@ describe('Shorten api\'s', () => {
       const shortenData = shortenCode.data
       expect(shortenCode.status).to.equal(201)
       expect(shortenData).to.be.an('object')
+      expect(shortenData.parent_id).to.be.a('null')
       expect(shortenData).to.have.keys([
         'id',
+        'parent_id',
         'is_index_urls',
         'is_auto_remove_on_visited',
         'code',
@@ -546,22 +548,73 @@ describe('Shorten api\'s', () => {
         expect(deletedShorten.data.message).to.equal('Item not found')
       }
 
-      expect(shortenCode.status).to.equal(207)
+      expect(shortenCode.status).to.equal(204)
     })
   })
 
   describe('Index', () => {
     it('Should be able to create new index', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
 
+      const params = {
+        url: faker.internet.url(),
+        is_index: true
+      }
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+      expect(shortenData.is_index_urls).to.be.a('boolean')
+      expect(shortenData.is_index_urls).to.equal(true)
     })
 
-    it('Should not be able to visit expired index', async () => {
-      
+    it('Should be able to add new item to index', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const paramIndex = {
+        url: faker.internet.url(),
+        is_index: true
+      }
+
+      const shortenDatas =[]
+      for (let i = 0; i < 4; i++) {
+        shortenDatas.push({
+          url: faker.internet.url()
+        })
+      }
+
+      const shortenCodeIndex = await request.post('/api/shorten', paramIndex, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenCodes = await request.post(`/api/shorten/items`, {
+        parent_id: shortenCodeIndex.data.id,
+        items: shortenDatas
+      }, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenCodesData = shortenCodes.data
+      expect(shortenCodes.status).to.equal(201)
+      expect(shortenCodesData).to.be.an('array')
+
+      for (let code of shortenCodesData) {
+        expect(code.parent_id).to.equal(shortenCodeIndex.data.id)
+      }
+
     })
   })
 
-  // describe('Visit', () => {
+  describe('Visit', () => {
   //   it('Should auto-removed once it visited', async () => {})
-  // })
+  //   it('Should not be able to visit shorten after expired', async () => {})
+  //   it('Should not be able to visit expired index', async () => {
+  //   })
+  })
 })
 
