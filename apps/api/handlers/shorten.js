@@ -263,7 +263,7 @@ router.delete('/:id', Permission.BasicOrClient(), async (req, res, next) => {
   }
 })
 
-router.delete('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
+router.post('/bulk/delete', Permission.BasicOrClient(), async (req, res, next) => {
   const { params } = req
 
   try {
@@ -275,9 +275,12 @@ router.delete('/bulk', Permission.BasicOrClient(), async (req, res, next) => {
       where: { id: { $in: validatedParams } } 
     })
 
+    const promises = []
     for (let shorten of shortens) {
-      await shorten.destroy()
+      promises.push(shorten.destroy())
     }
+
+    await Promise.all(promises)
 
     return res.send(HttpStatus.MULTI_STATUS)
   } catch (err) {

@@ -500,7 +500,34 @@ describe('Shorten api\'s', () => {
       expect(deletedShortenCode.status).to.equal(404) // No Content
       expect(deletedShortenCode.data.message).to.equal('Item not found')
     })
-    it('Should remove bulk of shorteners', () => {})
+    
+    it.only('Should remove bulk of shorteners', async () => {
+       // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const shortenDatas = []
+      for (let i = 0; i <= 4; i++) {
+        shortenDatas.push({
+          url: faker.internet.url(),
+        })
+      }
+
+      const config = { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      }
+
+      const shortens = await request.post('/api/shorten/bulk', shortenDatas, config)
+      const shortenIds = shortens.data.map((s) => s.id)
+      const shortenCode = await request.post(`/api/shorten/bulk/delete`, shortenIds, config)
+
+      for (let deletedShortenId of shortenIds) {
+        const deletedShorten = await request.get(`/api/shorten/${deletedShortenId}`, config)
+        expect(deletedShorten.status).to.equal(404) // No Content
+        expect(deletedShorten.data.message).to.equal('Item not found')
+      }
+
+      expect(shortenCode.status).to.equal(207)
+    })
   })
 })
 
