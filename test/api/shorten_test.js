@@ -297,6 +297,26 @@ describe('Shorten api\'s', () => {
         expect(shorten.code.substr(startIdxChars, 2)).to.equal(SUFFIX)
       }
     })
+
+    it('Should be able to create shortener with auto-removed param', async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey()
+
+      const params = {
+        url: faker.internet.url(),
+        auto_removed: true,
+      }
+
+      const shortenCode = await request.post('/api/shorten', params, { 
+        headers: {'Authorization': `Basic ${authKey}`}
+      })
+
+      const shortenData = shortenCode.data
+      expect(shortenCode.status).to.equal(201)
+      expect(shortenData).to.be.an('object')
+      expect(shortenData.is_auto_remove_on_visited).to.be.a('boolean')
+      expect(shortenData.is_auto_remove_on_visited).to.equal(true)
+    })
   })
 
   describe('Check', () => {
@@ -501,7 +521,7 @@ describe('Shorten api\'s', () => {
       expect(deletedShortenCode.data.message).to.equal('Item not found')
     })
     
-    it.only('Should remove bulk of shorteners', async () => {
+    it('Should remove bulk of shorteners', async () => {
        // Initialize auth
       const authKey = await authClient.getAuthorizationKey()
 
@@ -529,5 +549,19 @@ describe('Shorten api\'s', () => {
       expect(shortenCode.status).to.equal(207)
     })
   })
+
+  describe('Index', () => {
+    it('Should be able to create new index', async () => {
+
+    })
+
+    it('Should not be able to visit expired index', async () => {
+      
+    })
+  })
+
+  // describe('Visit', () => {
+  //   it('Should auto-removed once it visited', async () => {})
+  // })
 })
 
