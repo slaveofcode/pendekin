@@ -11,7 +11,9 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
 }
 
+const _ = require('lodash')
 const restify = require('restify')
+const pug = require('pug')
 const corsMiddleware = require('restify-cors-middleware')
 const passport = require('./passport')
 const routes = require('./routes')
@@ -20,7 +22,17 @@ const logger = require('./logger')
 const server = restify.createServer({
   name: 'pendekin',
   version: '1.0.0',
-  log: logger.getLoggerAdapter()
+  log: logger.getLoggerAdapter(),
+  formatters: {
+    'text/html': (req, res, body) => {
+      let data = '';
+      if (!_.isNil(body)) {
+        data = body.toString()
+        res.setHeader('Content-Length', Buffer.byteLength(data))
+      }
+      return data;
+    }
+  }
 })
 
 const cors = corsMiddleware({
@@ -30,6 +42,10 @@ const cors = corsMiddleware({
   exposeHeaders: ['API-Token-Expiry']
 })
 
+/**
+ * Added whitelist of 'Accept" headers 
+ */
+server.acceptable.push('text/html')
 
 server.pre(restify.pre.sanitizePath());
 server.pre(cors.preflight)
@@ -43,6 +59,23 @@ server.use(restify.plugins.conditionalRequest()) // ETag support
 server.use(cors.actual)
 server.use(passport.initialize())
 server.use(passport.session())
+server.use((req, res, next) => {
+  res.render = (pugPath, data = {}, opts = {}, status = 200) => {
+    const defaultOpts = {
+      cache: (process.env.NODE_ENV === 'production')
+    }
+
+    const compiled = pug.compileFile(
+      `${app_root}/views/${pugPath}.pug`,
+      Object.assign(defaultOpts, opts)
+    )
+
+    const html = compiled({ title: 'Some Title' })
+    return res.send(status, html, { 'Content-Type': 'text/html' })
+  }
+
+  next()
+})
 
 routes.applyRoutes(server)
 

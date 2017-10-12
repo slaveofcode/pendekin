@@ -52,6 +52,7 @@
     "passport-oauth2-client-password": "^0.1.2",
     "pg": "^7.2.0",
     "pg-hstore": "^2.3.2",
+    "pug": "^2.0.0-rc.4",
     "randomstring": "^1.1.5",
     "restify": "^5.2.0",
     "restify-cors-middleware": "^1.0.1",
