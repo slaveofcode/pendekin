@@ -6,7 +6,7 @@ const router = new Routing()
 
 router.use('/', require('./visit_url'))
 router.get('/render', (req, res, next) => {
-  return res.render('index')
+  return res.render('index', { title: 'Helloo' })
 })
 
 module.exports = router

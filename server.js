@@ -13,11 +13,11 @@ if (!process.env.NODE_ENV) {
 
 const _ = require('lodash')
 const restify = require('restify')
-const pug = require('pug')
 const corsMiddleware = require('restify-cors-middleware')
 const passport = require('./passport')
 const routes = require('./routes')
 const logger = require('./logger')
+const htmlRenderer = require(`${app_root}/libs/html_renderer`)
 
 const server = restify.createServer({
   name: 'pendekin',
@@ -59,23 +59,7 @@ server.use(restify.plugins.conditionalRequest()) // ETag support
 server.use(cors.actual)
 server.use(passport.initialize())
 server.use(passport.session())
-server.use((req, res, next) => {
-  res.render = (pugPath, data = {}, opts = {}, status = 200) => {
-    const defaultOpts = {
-      cache: (process.env.NODE_ENV === 'production')
-    }
-
-    const compiled = pug.compileFile(
-      `${app_root}/views/${pugPath}.pug`,
-      Object.assign(defaultOpts, opts)
-    )
-
-    const html = compiled({ title: 'Some Title' })
-    return res.send(status, html, { 'Content-Type': 'text/html' })
-  }
-
-  next()
-})
+server.use(htmlRenderer())
 
 routes.applyRoutes(server)
 
