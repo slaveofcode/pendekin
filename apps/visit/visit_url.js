@@ -15,9 +15,15 @@ router.get('/:code', async (req, res, next) => {
   try {
 
     const shorten = await DB.ShortenUrl.findOne({
-      where: {
-        code: { $eq: code }
-      }
+      where: DB.Sequelize.where(
+        DB.Sequelize.fn('concat', 
+        DB.Sequelize.col('prefix'), 
+        DB.Sequelize.col('code'), 
+        DB.Sequelize.col('suffix')
+      ),
+      {
+        $eq: code
+      })
     })
 
     if (_.isNull(shorten))
