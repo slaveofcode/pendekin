@@ -11,7 +11,8 @@ module.exports = function (sequelize, DataTypes) {
       },
       parent_id: {
         type: DataTypes.UUID,
-        allowNull: true
+        allowNull: true,
+        // references: { model: "ShortenUrl", key: "id" }
       },
       shorten_category_id: DataTypes.UUID,
       prefix: {
@@ -54,7 +55,7 @@ module.exports = function (sequelize, DataTypes) {
       classMethods: {
         associate: function (models) {
           ShortenUrl.belongsTo(models.ShortenCategory, { foreignKey: 'shorten_category_id' })
-          ShortenUrl.belongsTo(models.ShortenUrl, { foreignKey: 'parent_id' })
+          ShortenUrl.hasMany(models.ShortenUrl, { as: 'ChildrenUrl', foreignKey: 'parent_id' })
           ShortenUrl.hasMany(models.ShortenSideEffect)
         }
       }
