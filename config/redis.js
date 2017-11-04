@@ -14,6 +14,10 @@ const configurations = {
     host: process.env.REDIS_HOST,
     port: process.env.PORT
   },
+  test: {
+    host: process.env.REDIS_HOST,
+    port: process.env.PORT
+  },
   production: {
     host: process.env.REDIS_HOST,
     port: process.env.PORT
