@@ -20,17 +20,19 @@ describe("Solid Code Generator", () => {
     expect(code3).to.be.a("string");
     expect(code3.length).to.equal(100);
   });
-  it.only("Should be able to check existing generated code on redis", async () => {
+  it("Should be able to check existing generated code on redis", async () => {
     const KEY = "ABC123";
-    redisClient.del(KEY);
+    const KEYCODE = `SHORTEN:${KEY}`;
+    redisClient.del(KEYCODE);
 
     const exist = await solid_code_generator.checkUniqueCode(KEY);
     expect(exist).to.be.a("null");
 
-    await redisClient.hsetAsync(KEY, "name", "Aditya Kresna Permana");
+    await redisClient.hsetAsync(KEYCODE, "name", "Aditya Kresna");
 
     const exist2 = await solid_code_generator.checkUniqueCode(KEY);
-    expect(exist2).to.be.a("null");
+    expect(exist2).not.to.be.a("null");
+    expect(exist2).to.deep.equal({ name: "Aditya Kresna" });
   });
   it("Should be able to generate guaranteed-unique-code on specific length", () => {});
 });

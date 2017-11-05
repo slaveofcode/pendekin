@@ -19,7 +19,8 @@ const getUniqueCode = (digits = 6) => {
  */
 const checkUniqueCode = async code => {
   // checking code with digits
-  return await redisClient.hgetallAsync(`${SHORTEN_KEY}:${code}`);
+  const value = await redisClient.hgetallAsync(`${SHORTEN_KEY}:${code}`);
+  return value;
 };
 
 /**
