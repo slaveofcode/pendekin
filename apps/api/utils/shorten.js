@@ -1,173 +1,165 @@
-'use strict'
+"use strict";
 
-const _ = require('lodash')
-const moment = require('moment')
-const ValidUrl = require('valid-url')
-const DB = require(`${app_root}/models`)
-const PasswordLib = require(`${app_root}/libs/password`)
-const CodeGenerator = require(`${app_root}/libs/code_generator`)
+const _ = require("lodash");
+const moment = require("moment");
+const ValidUrl = require("valid-url");
+const DB = require(`${project_root}/models`);
+const PasswordLib = require(`${project_root}/libs/password`);
+const CodeGenerator = require(`${project_root}/libs/code_generator`);
+const SolidCodeGenerator = require(`${project_root}/libs/fixed_code_generator`);
+const siteConfig = require(`${config_root}/site`);
 
+const PREFIX_SEPARATOR = "-";
 
-const getCompiledCode = (code, prefix, suffix) => {
-  let compiledCode = code
-  if (prefix)
-    compiledCode = `${prefix}${compiledCode}`
-  if (suffix)
-    compiledCode = `${compiledCode}${suffix}`
-  return compiledCode
-}
+const serializeObj = shortenCode => {
+  const shortenJSON = !_.isPlainObject(shortenCode)
+    ? shortenCode.toJSON()
+    : shortenCode;
 
-const serializeObj = (shortenCode) => {
-
-  const shortenJSON = (!_.isPlainObject(shortenCode)) 
-    ? shortenCode.toJSON() 
-    : shortenCode
-  
-  let hasPassword = false
+  let hasPassword = false;
   if (shortenJSON.protected_password)
-    hasPassword = (shortenJSON.protected_password.length > 0)
+    hasPassword = shortenJSON.protected_password.length > 0;
 
-  const { code, prefix, suffix } = shortenJSON
-  
+  const { code } = shortenJSON;
+
   const allowedValues = _.omit(shortenJSON, [
-    'prefix',
-    'suffix',
-    'protected_password',
-    'deleted_at'
-  ])
+    "protected_password",
+    "deleted_at"
+  ]);
 
   return Object.assign(allowedValues, {
-    code: getCompiledCode(code, prefix, suffix),
-    code_origin: code,
+    code,
     has_password: hasPassword
-  })
-}
+  });
+};
 
-const serializeListObj = (shortensArray) => {
-  return shortensArray.map((shorten) => {
-    return serializeObj(shorten)
-  })
-}
+const serializeListObj = shortensArray => {
+  return shortensArray.map(shorten => {
+    return serializeObj(shorten);
+  });
+};
 
-
-const isCodeAvailable = async (codeToCheck) => {
+const isCodeAvailable = async codeToCheck => {
+  // TODO: check to redis
   const shortenCode = await DB.ShortenUrl.findOne({
     where: {
       code: codeToCheck
     }
-  })
+  });
 
-  return _.isNull(shortenCode) ? false : true
-}
+  return _.isNull(shortenCode) ? false : true;
+};
 
-const normalizeExpiredTime = (expired_at) => {
-  let expiredTime = null
-  if (!_.isNil(expired_at)) {
-    expiredTime = (_.isNil(expired_at)) ? null : moment(expired_at)
-  }
-  return expiredTime
-}
+const normalizeExpiredTime = expired_at => {
+  return _.isNil(expired_at) ? null : moment(expired_at);
+};
 
-const hashPassword = async (password) => {
-  let protected_password = null
+const hashPassword = async password => {
+  let protected_password = null;
   if (!_.isNil(password)) {
-    protected_password = await PasswordLib.hashPassword(password)
+    protected_password = await PasswordLib.hashPassword(password);
   }
 
-  return protected_password
-}
+  return protected_password;
+};
 
-const normalizeCategory = async (category_id) => {
-  let shorten_category_id = null
+const normalizeCategory = async category_id => {
+  let shorten_category_id = null;
 
   try {
     if (!_.isNil(category_id)) {
       const category = await DB.ShortenCategory.findOne({
-        where: { id: { $eq: category_id } } 
-      })
+        where: { id: { $eq: category_id } }
+      });
 
-      if (_.isNull(category))
-        return null
+      if (_.isNull(category)) return null;
 
-      shorten_category_id = category.id
+      shorten_category_id = category.id;
     }
   } catch (err) {}
 
-  return shorten_category_id
-}
+  return shorten_category_id;
+};
 
-const checkUrlValidity = (url) => {
-  return ValidUrl.isHttpUri(url) || ValidUrl.isHttpsUri(url)
-}
+const checkUrlValidity = url => {
+  return ValidUrl.isHttpUri(url) || ValidUrl.isHttpsUri(url);
+};
 
-const validateShorten = async (params) => {
+const validateCustomCode = async (custom_code, prefix) => {
+  const codeToCheck = prefix
+    ? `${prefix}${PREFIX_SEPARATOR}${custom_code}`
+    : custom_code;
+  if (await isCodeAvailable(codeToCheck)) return null;
+  return codeToCheck;
+};
+
+const getCode = (length = 6, prefix) => {
+  const code = CodeGenerator.generate(length);
+  return prefix ? `${prefix}${PREFIX_SEPARATOR}${code}` : code;
+};
+
+const getShorten = async params => {
   const {
-    suffix, 
-    prefix, 
-    password, 
-    expired_at, 
-    url, 
+    prefix,
+    password,
+    expired_at,
+    url,
     category_id,
     custom_code,
     parent_id
-  } = params
+  } = params;
 
   /**
    * Checking URL validity
    */
-  if (!checkUrlValidity(url))
-    return null
+  if (!checkUrlValidity(url)) return null;
 
   /**
    * Checking category
    */
-  let shorten_category_id = null
+  let shorten_category_id = null;
   if (!_.isNil(category_id)) {
-    shorten_category_id = await normalizeCategory(category_id)
-    if (_.isNull(shorten_category_id))
-      return null
+    shorten_category_id = await normalizeCategory(category_id);
+    if (_.isNull(shorten_category_id)) return null;
   }
 
   /**
    * Checking protected password
    */
-  let protected_password = await hashPassword(password)
+  let protected_password = await hashPassword(password);
 
-  /**
-   * Checking expired time
-   */
-  let expiredTime = normalizeExpiredTime(expired_at)
+  let expiredTime = normalizeExpiredTime(expired_at);
 
   /**
    * Checking custom code
    */
-  let customCode = null
+  let customCode = null;
   if (!_.isNil(custom_code)) {
-    customCode = getCompiledCode(custom_code, prefix, suffix)
-    if (await checkCodeAvailable(customCode))
-      return null
+    customCode = await validateCustomCode(custom_code, prefix);
+    if (customCode === null) return null;
   }
 
+  const code = customCode ? customCode : getCode(6, prefix);
+
   return {
-    code: (customCode) ? customCode : CodeGenerator.generate(),
     expired_at: expiredTime,
+    code,
     url,
     shorten_category_id,
-    prefix,
-    suffix,
     protected_password,
     parent_id
-  }
-}
+  };
+};
 
 module.exports = {
   serializeObj,
   serializeListObj,
   isCodeAvailable,
-  getCompiledCode,
   normalizeExpiredTime,
   normalizeCategory,
   hashPassword,
   checkUrlValidity,
-  validateShorten
-}
+  getShorten,
+  validateCustomCode,
+  getCode
+};

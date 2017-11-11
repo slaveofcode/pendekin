@@ -1,14 +1,14 @@
-'use strict'
+"use strict";
 
-const ShortId = require('shortid')
-const HashIds = require('hashids')
+const ShortId = require("shortid");
+const HashIds = require("hashids");
 
-const UNIQUE_SEED = 18
+const UNIQUE_SEED = 18;
 
 /**
  * Generating unique code for key
  */
-const uniqueCode = () => (ShortId.seed(UNIQUE_SEED).generate())
+const uniqueCode = () => ShortId.seed(UNIQUE_SEED).generate();
 
 /**
  * Generate code with length
@@ -19,9 +19,9 @@ const uniqueCode = () => (ShortId.seed(UNIQUE_SEED).generate())
  * @param {*} length 
  */
 const generate = (length = 4) => {
-  const hashid = new HashIds(uniqueCode(), length)
-  return hashid.encode(1)
-}
+  const hashid = new HashIds(uniqueCode(), length);
+  return hashid.encode([18, 6, 31, 5]);
+};
 
 /**
  * Generate bulk code with length
@@ -33,15 +33,15 @@ const generate = (length = 4) => {
  * @param {*} length 
  */
 const generateBulk = (count, length = 4) => {
-  const codes = []
+  const codes = [];
   for (let i = 1; i <= count; i++) {
-    codes.push(generate(length))
+    codes.push(generate(length));
   }
-  return codes
-}
+  return codes;
+};
 
 module.exports = {
   uniqueCode,
   generate,
   generateBulk
-}
+};

@@ -1,8 +1,8 @@
-'use strict'
+"use strict";
 
-module.exports = function (sequelize, DataTypes) {
+module.exports = function(sequelize, DataTypes) {
   var ShortenUrl = sequelize.define(
-    'ShortenUrl',
+    "ShortenUrl",
     {
       id: {
         type: DataTypes.UUID,
@@ -11,18 +11,10 @@ module.exports = function (sequelize, DataTypes) {
       },
       parent_id: {
         type: DataTypes.UUID,
-        allowNull: true,
+        allowNull: true
         // references: { model: "ShortenUrl", key: "id" }
       },
       shorten_category_id: DataTypes.UUID,
-      prefix: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-      suffix: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
       code: DataTypes.STRING,
       protected_password: {
         type: DataTypes.STRING,
@@ -46,21 +38,26 @@ module.exports = function (sequelize, DataTypes) {
       deleted_at: DataTypes.DATE
     },
     {
-      tableName: 'shorten_urls',
+      tableName: "shorten_urls",
       timestamps: true,
       paranoid: true,
-      createdAt: 'created_at',
-      updatedAt: 'updated_at',
-      deletedAt: 'deleted_at',
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      deletedAt: "deleted_at",
       classMethods: {
-        associate: function (models) {
-          ShortenUrl.belongsTo(models.ShortenCategory, { foreignKey: 'shorten_category_id' })
-          ShortenUrl.hasMany(models.ShortenUrl, { as: 'ChildrenUrl', foreignKey: 'parent_id' })
-          ShortenUrl.hasMany(models.ShortenSideEffect)
+        associate: function(models) {
+          ShortenUrl.belongsTo(models.ShortenCategory, {
+            foreignKey: "shorten_category_id"
+          });
+          ShortenUrl.hasMany(models.ShortenUrl, {
+            as: "ChildrenUrl",
+            foreignKey: "parent_id"
+          });
+          ShortenUrl.hasMany(models.ShortenSideEffect);
         }
       }
     }
-  )
+  );
 
-  return ShortenUrl
-}
+  return ShortenUrl;
+};
