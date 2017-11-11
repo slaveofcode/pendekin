@@ -41,5 +41,14 @@ describe("Solid Code Generator", () => {
     expect(codeWithPrefix.length).to.equal(14);
     expect(codeWithPrefix).to.be.a("string");
     expect(codeWithPrefix).to.match(/^COUPON\-([a-zA-Z0-9]{7})$/);
+
+    const codeWithCustomPrefix = await solid_code_generator.getSolidCode(
+      4,
+      "COUPON",
+      "+"
+    );
+    expect(codeWithCustomPrefix.length).to.equal(11);
+    expect(codeWithCustomPrefix).to.be.a("string");
+    expect(codeWithCustomPrefix).to.match(/^COUPON\+([a-zA-Z0-9]{4})$/);
   });
 });
