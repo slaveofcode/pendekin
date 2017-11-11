@@ -10,6 +10,10 @@ const UNIQUE_SEED = 18;
  */
 const uniqueCode = () => ShortId.seed(UNIQUE_SEED).generate();
 
+const getRandomInt = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 /**
  * Generate code with length
  * Please take a note that the length is not guaranteed to be exact length 
@@ -20,7 +24,12 @@ const uniqueCode = () => ShortId.seed(UNIQUE_SEED).generate();
  */
 const generate = (length = 4) => {
   const hashid = new HashIds(uniqueCode(), length);
-  return hashid.encode([18, 6, 31, 5]);
+  return hashid.encode([
+    getRandomInt(1, 1000),
+    getRandomInt(1, 1000),
+    getRandomInt(1, 1000),
+    getRandomInt(1, 1000)
+  ]);
 };
 
 /**
