@@ -30,8 +30,6 @@ describe("Shorten api's", () => {
         code: CodeGenerator.generate(),
         expired_at: faker.date.future(),
         url: faker.internet.url(),
-        prefix: faker.random.alphaNumeric(3),
-        suffix: faker.random.alphaNumeric(3),
         protected_password: faker.internet.password()
       });
 
@@ -59,8 +57,6 @@ describe("Shorten api's", () => {
           code: CodeGenerator.generate(),
           expired_at: faker.date.future(),
           url: faker.internet.url(),
-          prefix: faker.random.alphaNumeric(2),
-          suffix: faker.random.alphaNumeric(3),
           protected_password: faker.internet.password()
         });
       }
@@ -120,7 +116,6 @@ describe("Shorten api's", () => {
         "is_index_urls",
         "is_auto_remove_on_visited",
         "code",
-        "code_origin",
         "expired_at",
         "url",
         "shorten_category_id",
@@ -190,50 +185,6 @@ describe("Shorten api's", () => {
       expect(shortenData.code.substr(0, 2)).to.equal(params.prefix);
     });
 
-    it("Should be able to create one shortener with suffix code", async () => {
-      // Initialize auth
-      const authKey = await authClient.getAuthorizationKey();
-
-      const params = {
-        url: faker.internet.url(),
-        suffix: "ERR"
-      };
-
-      const shortenCode = await request.post("/api/shorten", params, {
-        headers: { Authorization: `Basic ${authKey}` }
-      });
-
-      const shortenData = shortenCode.data;
-      expect(shortenCode.status).to.equal(201);
-
-      const startIdxChars = shortenData.code.length - 3;
-      expect(shortenData.code.substr(startIdxChars, 3)).to.equal(params.suffix);
-    });
-
-    it("Should be able to create one shortener with prefix and suffix code", async () => {
-      // Initialize auth
-      const authKey = await authClient.getAuthorizationKey();
-
-      const params = {
-        expired_at: faker.date.future(),
-        url: faker.internet.url(),
-        prefix: faker.random.alphaNumeric(2),
-        suffix: faker.random.alphaNumeric(2),
-        password: faker.internet.password()
-      };
-
-      const shortenCode = await request.post("/api/shorten", params, {
-        headers: { Authorization: `Basic ${authKey}` }
-      });
-
-      const shortenData = shortenCode.data;
-      expect(shortenCode.status).to.equal(201);
-
-      expect(shortenData.code.substr(0, 2)).to.equal(params.prefix);
-      const startIdxChars = shortenData.code.length - 2;
-      expect(shortenData.code.substr(startIdxChars, 2)).to.equal(params.suffix);
-    });
-
     it("Should be able to create bulk shorteners", async () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey();
@@ -263,7 +214,6 @@ describe("Shorten api's", () => {
         "is_index_urls",
         "is_auto_remove_on_visited",
         "code",
-        "code_origin",
         "expired_at",
         "url",
         "shorten_category_id",
@@ -273,20 +223,18 @@ describe("Shorten api's", () => {
       ]);
     });
 
-    it("Should be able to create bulk shorteners with custom, prefix and suffix code", async () => {
+    it("Should be able to create bulk shorteners with custom, prefix code", async () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey();
 
       const PREFIX = faker.random.alphaNumeric(2);
-      const SUFFIX = faker.random.alphaNumeric(2);
       const shortenDatas = [];
       for (let i = 0; i <= 4; i++) {
         shortenDatas.push({
           expired_at: faker.date.future(),
           url: faker.internet.url(),
           password: faker.internet.password(),
-          prefix: PREFIX,
-          suffix: SUFFIX
+          prefix: PREFIX
         });
       }
 
@@ -303,8 +251,6 @@ describe("Shorten api's", () => {
       expect(shortenData).to.be.an("array");
       for (let shorten of shortenData) {
         expect(shorten.code.substr(0, 2)).to.equal(PREFIX);
-        const startIdxChars = shorten.code.length - 2;
-        expect(shorten.code.substr(startIdxChars, 2)).to.equal(SUFFIX);
       }
     });
 

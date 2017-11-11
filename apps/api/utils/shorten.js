@@ -6,13 +6,10 @@ const ValidUrl = require("valid-url");
 const DB = require(`${project_root}/models`);
 const PasswordLib = require(`${project_root}/libs/password`);
 const CodeGenerator = require(`${project_root}/libs/code_generator`);
+const SolidCodeGenerator = require(`${project_root}/libs/fixed_code_generator`);
+const siteConfig = require(`${config_root}/site`);
 
-const getCompiledCode = (code, prefix, suffix) => {
-  let compiledCode = code;
-  if (prefix) compiledCode = `${prefix}${compiledCode}`;
-  if (suffix) compiledCode = `${compiledCode}${suffix}`;
-  return compiledCode;
-};
+const PREFIX_SEPARATOR = "-";
 
 const serializeObj = shortenCode => {
   const shortenJSON = !_.isPlainObject(shortenCode)
@@ -23,18 +20,15 @@ const serializeObj = shortenCode => {
   if (shortenJSON.protected_password)
     hasPassword = shortenJSON.protected_password.length > 0;
 
-  const { code, prefix, suffix } = shortenJSON;
+  const { code } = shortenJSON;
 
   const allowedValues = _.omit(shortenJSON, [
-    "prefix",
-    "suffix",
     "protected_password",
     "deleted_at"
   ]);
 
   return Object.assign(allowedValues, {
-    code: getCompiledCode(code, prefix, suffix),
-    code_origin: code,
+    code,
     has_password: hasPassword
   });
 };
@@ -91,9 +85,21 @@ const checkUrlValidity = url => {
   return ValidUrl.isHttpUri(url) || ValidUrl.isHttpsUri(url);
 };
 
-const validateShorten = async params => {
+const validateCustomCode = async (custom_code, prefix) => {
+  const codeToCheck = prefix
+    ? `${prefix}${PREFIX_SEPARATOR}${custom_code}`
+    : custom_code;
+  if (await isCodeAvailable(codeToCheck)) return null;
+  return codeToCheck;
+};
+
+const getCode = (length = 6, prefix) => {
+  const code = CodeGenerator.generate(length);
+  return prefix ? `${prefix}${PREFIX_SEPARATOR}${code}` : code;
+};
+
+const getShorten = async params => {
   const {
-    suffix,
     prefix,
     password,
     expired_at,
@@ -129,17 +135,17 @@ const validateShorten = async params => {
    */
   let customCode = null;
   if (!_.isNil(custom_code)) {
-    customCode = getCompiledCode(custom_code, prefix, suffix);
-    if (await isCodeAvailable(customCode)) return null;
+    customCode = await validateCustomCode(custom_code, prefix);
+    if (customCode === null) return null;
   }
 
+  const code = customCode ? customCode : getCode(6, prefix);
+
   return {
-    code: customCode ? customCode : CodeGenerator.generate(),
     expired_at: expiredTime,
+    code,
     url,
     shorten_category_id,
-    prefix,
-    suffix,
     protected_password,
     parent_id
   };
@@ -149,10 +155,11 @@ module.exports = {
   serializeObj,
   serializeListObj,
   isCodeAvailable,
-  getCompiledCode,
   normalizeExpiredTime,
   normalizeCategory,
   hashPassword,
   checkUrlValidity,
-  validateShorten
+  getShorten,
+  validateCustomCode,
+  getCode
 };

@@ -25,9 +25,6 @@ const schema = Joi.object().keys({
   prefix: Joi.string()
     .trim()
     .max(5),
-  suffix: Joi.string()
-    .trim()
-    .max(5),
   password: Joi.string(),
   expired_at: Joi.date().iso(),
   custom_code: Joi.string(),
@@ -90,7 +87,6 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
   try {
     const validatedParams = await Joi.validate(params, schema);
     const {
-      suffix,
       prefix,
       password,
       expired_at,
@@ -134,20 +130,20 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
      */
     let customCode = null;
     if (!_.isNil(custom_code)) {
-      customCode = Shorten.getCompiledCode(custom_code, prefix, suffix);
-      if (await Shorten.isCodeAvailable(customCode))
+      customCode = await Shorten.validateCustomCode(custom_code, prefix);
+      if (customCode === null)
         return res.send(
           new RestifyError.BadRequestError("Custom Code already exist")
         );
     }
 
+    const code = customCode ? customCode : Shorten.getCode(6, prefix);
+
     const shorten = await DB.ShortenUrl.create({
-      code: customCode ? customCode : CodeGenerator.generate(),
       expired_at: expiredTime,
+      code,
       url,
       shorten_category_id,
-      prefix,
-      suffix,
       protected_password,
       is_auto_remove_on_visited,
       is_index_urls
@@ -167,7 +163,7 @@ router.post("/bulk", Permission.BasicOrClient(), async (req, res, next) => {
 
     const bulkParams = [];
     for (let shortenParam of validatedBulkParams) {
-      bulkParams.push(await Shorten.validateShorten(shortenParam));
+      bulkParams.push(await Shorten.getShorten(shortenParam));
     }
 
     const shortens = await DB.ShortenUrl.bulkCreate(bulkParams);
@@ -334,7 +330,7 @@ router.post("/items", Permission.BasicOrClient(), async (req, res, next) => {
     const bulkParams = [];
     for (let shortenParam of items) {
       Object.assign(shortenParam, { parent_id });
-      bulkParams.push(await Shorten.validateShorten(shortenParam));
+      bulkParams.push(await Shorten.getShorten(shortenParam));
     }
 
     const shortens = await DB.ShortenUrl.bulkCreate(bulkParams);

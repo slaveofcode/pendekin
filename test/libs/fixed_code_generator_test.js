@@ -2,16 +2,16 @@
 
 const chai = require("chai");
 const redis = require(`${project_root}/redis`);
-const solid_code_generator = require(`${lib_root}/solid_code_generator`);
+const fixed_code_generator = require(`${lib_root}/fixed_code_generator`);
 
 const expect = chai.expect;
 const redisClient = redis();
 
-describe("Solid Code Generator", () => {
+describe("Fixed Code Generator", () => {
   it("Should generate random code with specific length", () => {
-    const code1 = solid_code_generator.getCode(6);
-    const code2 = solid_code_generator.getCode(10);
-    const code3 = solid_code_generator.getCode(100);
+    const code1 = fixed_code_generator.getCode(6);
+    const code2 = fixed_code_generator.getCode(10);
+    const code3 = fixed_code_generator.getCode(100);
 
     expect(code1).to.be.a("string");
     expect(code1.length).to.equal(6);
@@ -24,25 +24,25 @@ describe("Solid Code Generator", () => {
     const KEY = "ABC123";
     const KEYCODE = `SHORTEN:${KEY}`;
 
-    const exist = await solid_code_generator.isCodeExist(KEY);
+    const exist = await fixed_code_generator.isCodeExist(KEY);
     expect(exist).to.equal(false);
 
     await redisClient.hsetAsync(KEYCODE, "name", "Aditya Kresna");
 
-    const exist2 = await solid_code_generator.isCodeExist(KEY);
+    const exist2 = await fixed_code_generator.isCodeExist(KEY);
     expect(exist2).to.equal(true);
   });
   it("Should be able to generate guaranteed-unique-code on specific length", async () => {
-    const code = await solid_code_generator.generate(6);
+    const code = await fixed_code_generator.generate(6);
     expect(code.length).to.equal(6);
     expect(code).to.be.a("string");
 
-    const codeWithPrefix = await solid_code_generator.generate(7, "COUPON");
+    const codeWithPrefix = await fixed_code_generator.generate(7, "COUPON");
     expect(codeWithPrefix.length).to.equal(14);
     expect(codeWithPrefix).to.be.a("string");
     expect(codeWithPrefix).to.match(/^COUPON\-([a-zA-Z0-9]{7})$/);
 
-    const codeWithCustomPrefix = await solid_code_generator.generate(
+    const codeWithCustomPrefix = await fixed_code_generator.generate(
       4,
       "COUPON",
       "+"
@@ -52,7 +52,7 @@ describe("Solid Code Generator", () => {
     expect(codeWithCustomPrefix).to.match(/^COUPON\+([a-zA-Z0-9]{4})$/);
   });
   it("Should be able to generate bulk guaranteed-unique-code", async () => {
-    const codes = await solid_code_generator.generateBulk(1000, 6);
+    const codes = await fixed_code_generator.generateBulk(1000, 6);
 
     for (const code of codes) {
       expect(code).to.be.a("string");

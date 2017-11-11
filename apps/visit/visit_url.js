@@ -12,15 +12,9 @@ const PASSWORD_PATH = "password-required";
 
 const getShortenByCode = async code => {
   const shorten = await DB.ShortenUrl.findAll({
-    where: DB.Sequelize.where(
-      DB.Sequelize.fn(
-        "concat",
-        DB.Sequelize.col("prefix"),
-        DB.Sequelize.col("code"),
-        DB.Sequelize.col("suffix")
-      ),
-      { $eq: code }
-    ),
+    where: {
+      code: { $eq: code }
+    },
     include: [
       {
         model: DB.ShortenUrl,
