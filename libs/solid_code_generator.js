@@ -29,7 +29,7 @@ const isCodeExist = async code => {
  * @param string prefix 
  * @param string separator 
  */
-const getSolidCode = async (
+const generate = async (
   length = 6,
   prefix = null,
   separator = "-",
@@ -54,8 +54,23 @@ const getSolidCode = async (
   else return null;
 };
 
+const generateBulk = (
+  count,
+  length = 6,
+  prefix = null,
+  separator = "-",
+  config = {}
+) => {
+  const codes = [];
+  for (let i = 1; i <= count; i++) {
+    codes.push(generate(length, prefix, separator, config));
+  }
+  return Promise.all(codes);
+};
+
 module.exports = {
   getCode,
   isCodeExist,
-  getSolidCode
+  generate,
+  generateBulk
 };
