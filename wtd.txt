@@ -1,0 +1,8 @@
+WHAT TO DO:
+- Feature to reuse existing shortened url
+- Patch destination url on existing shortened url
+- Page for password protected shorten
+- Page for index url 
+- Database sync redis ?
+- Redis check on every generated shortener
+- Create listener in rust to update redis as well
