@@ -46,6 +46,7 @@ const serializeListObj = shortensArray => {
 };
 
 const isCodeAvailable = async codeToCheck => {
+  // TODO: check to redis
   const shortenCode = await DB.ShortenUrl.findOne({
     where: {
       code: codeToCheck
@@ -56,11 +57,7 @@ const isCodeAvailable = async codeToCheck => {
 };
 
 const normalizeExpiredTime = expired_at => {
-  let expiredTime = null;
-  if (!_.isNil(expired_at)) {
-    expiredTime = _.isNil(expired_at) ? null : moment(expired_at);
-  }
-  return expiredTime;
+  return _.isNil(expired_at) ? null : moment(expired_at);
 };
 
 const hashPassword = async password => {
@@ -125,9 +122,6 @@ const validateShorten = async params => {
    */
   let protected_password = await hashPassword(password);
 
-  /**
-   * Checking expired time
-   */
   let expiredTime = normalizeExpiredTime(expired_at);
 
   /**
@@ -136,7 +130,7 @@ const validateShorten = async params => {
   let customCode = null;
   if (!_.isNil(custom_code)) {
     customCode = getCompiledCode(custom_code, prefix, suffix);
-    if (await checkCodeAvailable(customCode)) return null;
+    if (await isCodeAvailable(customCode)) return null;
   }
 
   return {
