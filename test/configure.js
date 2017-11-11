@@ -1,8 +1,12 @@
 "use strict";
+require("dotenv").config();
 
 const Promise = require("bluebird");
 const DB = require(`${project_root}/models`);
+const redis = require(`${project_root}/redis`);
 const server = require("../server");
+
+const redisClient = redis();
 
 before(() => {
   // load env
@@ -16,6 +20,7 @@ after(() => {
 beforeEach(async () => {
   await DB.sequelize.sync({ force: true });
   await server.listen("1818");
+  redisClient.flushall();
 });
 
 afterEach(async () => {

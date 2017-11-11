@@ -9,7 +9,7 @@ const SHORTEN_KEY = "SHORTEN";
  * Get dummy random string
  * @param integer digits 
  */
-const getUniqueCode = (digits = 6) => {
+const getCode = (digits = 6) => {
   return randomatic("aA0", digits);
 };
 
@@ -17,10 +17,10 @@ const getUniqueCode = (digits = 6) => {
  * Check code on existing redis storage
  * @param string code 
  */
-const checkUniqueCode = async code => {
+const isCodeExist = async code => {
   // checking code with digits
   const value = await redisClient.hgetallAsync(`${SHORTEN_KEY}:${code}`);
-  return value;
+  return value !== null;
 };
 
 /**
@@ -29,20 +29,33 @@ const checkUniqueCode = async code => {
  * @param string prefix 
  * @param string separator 
  */
-const getSolidCode = (length = 6, prefix = null, separator = "-") => {
-  // step1: generate code
-  // step2: check code exist or not on redis
-  // step3: if not: return the code
-  // step4: if yes check the probability to generate new code,
-  //          if still possible back to step1
-  //          if not return error code with that length is now full
-  //        else continue the process
-  // step5: increment the total code count with given length
-  // step6: return the code
+const getSolidCode = async (
+  length = 6,
+  prefix = null,
+  separator = "-",
+  config = {}
+) => {
+  const cfg = Object.assign(
+    { maxCheckTimes: 1000, throwOnFails: false },
+    config
+  );
+
+  let code;
+  const maxCheckTimes = cfg.maxCheckTimes;
+  const checkCount = 0;
+
+  do {
+    code = prefix ? `${prefix}${separator}${getCode(length)}` : getCode(length);
+  } while ((await isCodeExist(code)) && checkCount < maxCheckTimes);
+
+  if (checkCount < maxCheckTimes) return code;
+  if (cfg.throwOnFails)
+    throw new Error("Code is not generated, most codes are already reseved");
+  else return null;
 };
 
 module.exports = {
-  getUniqueCode,
-  checkUniqueCode,
+  getCode,
+  isCodeExist,
   getSolidCode
 };
