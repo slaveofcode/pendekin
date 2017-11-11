@@ -59,12 +59,14 @@ router.get("/:code", async (req, res, next) => {
     /**
      * Check for expiry
      */
-    const shortenExpiredTime = moment(shorten.expired_at);
-    const currentTime = moment();
-    if (shortenExpiredTime.diff(currentTime, "seconds") < 0)
-      return res.send(
-        new RestifyError.NotFoundError("The page has been expired")
-      );
+    if (shorten.expired_at) {
+      const shortenExpiredTime = moment(shorten.expired_at);
+      const currentTime = moment();
+      if (shortenExpiredTime.diff(currentTime, "seconds") < 0)
+        return res.send(
+          new RestifyError.NotFoundError("The page has been expired")
+        );
+    }
 
     /**
      * Check for password,
