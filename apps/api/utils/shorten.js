@@ -8,8 +8,10 @@ const PasswordLib = require(`${project_root}/libs/password`);
 const CodeGenerator = require(`${project_root}/libs/code_generator`);
 const SolidCodeGenerator = require(`${project_root}/libs/fixed_code_generator`);
 const siteConfig = require(`${config_root}/site`);
+const redis = require(`${project_root}/redis`);
 
 const PREFIX_SEPARATOR = "-";
+const SHORTEN_KEY = siteConfig.redis_shorten_key || "SHORTEN";
 
 const serializeObj = shortenCode => {
   const shortenJSON = !_.isPlainObject(shortenCode)
@@ -40,13 +42,16 @@ const serializeListObj = shortensArray => {
 };
 
 const isCodeAvailable = async codeToCheck => {
-  // TODO: check to redis
-  const shortenCode = await DB.ShortenUrl.findOne({
-    where: {
-      code: codeToCheck
-    }
-  });
-
+  let shortenCode;
+  if (siteConfig.enable_redis) {
+    shortenCode = await redis().hgetallAsync(`${SHORTEN_KEY}:${codeToCheck}`);
+  } else {
+    shortenCode = await DB.ShortenUrl.findOne({
+      where: {
+        code: codeToCheck
+      }
+    });
+  }
   return _.isNull(shortenCode) ? false : true;
 };
 

@@ -29,6 +29,7 @@ const schema = Joi.object().keys({
   expired_at: Joi.date().iso(),
   custom_code: Joi.string(),
   auto_removed: Joi.boolean().default(false),
+  reuse_existing: Joi.boolean().default(false),
   is_index: Joi.boolean().default(false)
 });
 

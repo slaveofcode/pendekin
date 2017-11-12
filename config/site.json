@@ -1,3 +1,5 @@
 {
-  "visit_url_path": "go"
+  "visit_url_path": "go",
+  "enable_redis": false,
+  "redis_shorten_key": "SHORTEN"
 }

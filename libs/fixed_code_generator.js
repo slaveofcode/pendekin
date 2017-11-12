@@ -1,10 +1,11 @@
 "use strict";
 
+const siteConfig = require(`${config_root}/site`);
 const redis = require(`${project_root}/redis`);
 const randomatic = require("randomatic");
 
 const redisClient = redis();
-const SHORTEN_KEY = "SHORTEN";
+const SHORTEN_KEY = siteConfig.redis_shorten_key || "SHORTEN";
 /**
  * Get dummy random string
  * @param integer digits 
