@@ -1,5 +1,6 @@
 "use strict";
 
+const _ = require("lodash");
 const chai = require("chai");
 const faker = require("faker");
 const DB = require(`${project_root}/models`);
@@ -272,6 +273,87 @@ describe("Shorten api's", () => {
       expect(shortenData).to.be.an("object");
       expect(shortenData.is_auto_remove_on_visited).to.be.a("boolean");
       expect(shortenData.is_auto_remove_on_visited).to.equal(true);
+    });
+
+    it("Should be able to use existing shortener", async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey();
+      const url = faker.internet.url();
+
+      const params = {
+        url,
+        reuse_existing: true
+      };
+
+      const shortenCode = await request.post(
+        "/api/shorten",
+        _.omit(params, ["reuse_existing"]),
+        {
+          headers: { Authorization: `Basic ${authKey}` }
+        }
+      );
+
+      const shortenCodeReuse = await request.post("/api/shorten", params, {
+        headers: { Authorization: `Basic ${authKey}` }
+      });
+
+      const shortenData = shortenCode.data;
+      const shortenDataReuse = shortenCodeReuse.data;
+      expect(shortenCode.status).to.equal(201);
+      expect(shortenData).to.be.an("object");
+      expect(shortenCodeReuse.status).to.equal(201);
+      expect(shortenDataReuse).to.be.an("object");
+      expect(shortenData.code).to.equal(shortenDataReuse.code);
+    });
+
+    it.only("Should be able to use existing shortener with bulk", async () => {
+      // Initialize auth
+      const authKey = await authClient.getAuthorizationKey();
+
+      const shortenDatas = [
+        {
+          url: faker.internet.url()
+        },
+        {
+          url: faker.internet.url()
+        },
+        {
+          url: faker.internet.url()
+        },
+        {
+          url: faker.internet.url()
+        }
+      ];
+
+      const shortenCode = await request.post(
+        "/api/shorten/bulk",
+        shortenDatas,
+        {
+          headers: { Authorization: `Basic ${authKey}` }
+        }
+      );
+
+      const reuseParams = shortenDatas.map(param =>
+        Object.assign(param, { reuse_existing: true })
+      );
+
+      const shortenCodeReuse = await request.post(
+        "/api/shorten/bulk",
+        reuseParams,
+        {
+          headers: { Authorization: `Basic ${authKey}` }
+        }
+      );
+
+      const shortenData = shortenCode.data;
+      const shortenDataReuse = shortenCodeReuse.data;
+
+      expect(shortenCode.status).to.equal(201);
+      expect(shortenCodeReuse.status).to.equal(207);
+
+      for (let i = 0; i < shortenDatas.length; i++) {
+        expect(shortenDatas[i].url).to.equal(shortenDataReuse[i].url);
+      }
     });
   });
 

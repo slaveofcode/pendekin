@@ -93,6 +93,7 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
       password,
       expired_at,
       url,
+      reuse_existing,
       category_id,
       custom_code,
       auto_removed: is_auto_remove_on_visited,
@@ -143,15 +144,17 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
       ? customCode
       : Shorten.getCode(siteConfig.shorten_length_code, prefix);
 
-    const shorten = await Shorten.saveShorten({
-      expired_at: expiredTime,
-      code,
-      url,
-      shorten_category_id,
-      protected_password,
-      is_auto_remove_on_visited,
-      is_index_urls
-    });
+    const shorten = reuse_existing
+      ? await Shorten.reuseExisting(url)
+      : await Shorten.saveShorten({
+          expired_at: expiredTime,
+          code,
+          url,
+          shorten_category_id,
+          protected_password,
+          is_auto_remove_on_visited,
+          is_index_urls
+        });
 
     return res.send(HttpStatus.CREATED, Shorten.serializeObj(shorten));
   } catch (err) {
@@ -166,20 +169,31 @@ router.post("/bulk", Permission.BasicOrClient(), async (req, res, next) => {
     const validatedBulkParams = await Joi.validate(params, schemaBulk);
 
     const bulkParams = [];
+    const existingShortens = [];
     for (let shortenParam of validatedBulkParams) {
-      const code = await Shorten.getShorten(shortenParam);
-      if (code !== null) bulkParams.push(code);
+      let shortenCode = shortenParam.reuse_existing
+        ? await Shorten.reuseExisting(shortenParam.url)
+        : null;
+
+      if (shortenCode !== null) existingShortens.push(shortenCode);
+
+      while (shortenCode === null) {
+        shortenCode = await Shorten.getShorten(shortenParam);
+        if (shortenCode !== null) bulkParams.push(shortenCode);
+      }
     }
 
     const shortens = await Shorten.saveShorten(bulkParams);
+    const mergedShortens = shortens.concat(existingShortens);
 
     const statusCode =
       bulkParams.length < validatedBulkParams.length
         ? HttpStatus.MULTI_STATUS
         : HttpStatus.CREATED;
 
-    return res.send(statusCode, Shorten.serializeListObj(shortens));
+    return res.send(statusCode, Shorten.serializeListObj(mergedShortens));
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 });
@@ -335,8 +349,11 @@ router.post("/items", Permission.BasicOrClient(), async (req, res, next) => {
     const bulkParams = [];
     for (let shortenParam of items) {
       Object.assign(shortenParam, { parent_id });
-      const code = await Shorten.getShorten(shortenParam);
-      if (code !== null) bulkParams.push(code);
+      let code = null;
+      while (code === null) {
+        code = await Shorten.getShorten(shortenParam);
+        if (code !== null) bulkParams.push(code);
+      }
     }
 
     const shortens = await Shorten.saveShorten(bulkParams);

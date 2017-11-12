@@ -13,6 +13,8 @@ const redis = require(`${project_root}/redis`);
 const PREFIX_SEPARATOR = "-";
 const SHORTEN_KEY = siteConfig.redis_shorten_key || "SHORTEN";
 
+const redisClient = siteConfig.enable_redis ? redis() : null;
+
 const serializeObj = shortenCode => {
   const shortenJSON = !_.isPlainObject(shortenCode)
     ? shortenCode.toJSON()
@@ -44,7 +46,9 @@ const serializeListObj = shortensArray => {
 const isCodeAvailable = async codeToCheck => {
   let shortenCode;
   if (siteConfig.enable_redis) {
-    shortenCode = await redis().hgetallAsync(`${SHORTEN_KEY}:${codeToCheck}`);
+    shortenCode = await redisClient.hgetallAsync(
+      `${SHORTEN_KEY}:${codeToCheck}`
+    );
   } else {
     shortenCode = await DB.ShortenUrl.findOne({
       where: {
@@ -58,7 +62,9 @@ const isCodeAvailable = async codeToCheck => {
 const isURLAvailable = async urlToCheck => {
   let shortenCode;
   if (siteConfig.enable_redis) {
-    shortenCode = await redis().hgetallAsync(`${SHORTEN_KEY}:${codeToCheck}`);
+    shortenCode = await redisClient.hgetallAsync(
+      `${SHORTEN_KEY}:${codeToCheck}`
+    );
   } else {
     shortenCode = await DB.ShortenUrl.findOne({
       where: {
@@ -114,6 +120,23 @@ const validateCustomCode = async (custom_code, prefix) => {
 const getCode = (length = siteConfig.shorten_length_code, prefix) => {
   const code = CodeGenerator.generate(length);
   return prefix ? `${prefix}${PREFIX_SEPARATOR}${code}` : code;
+};
+
+const reuseExisting = async url => {
+  if (siteConfig.enable_redis) {
+    const existing = await redisClient.sinterAsync(
+      `${siteConfig.redis_shorten_key}:URL:${url}`
+    );
+    return _.isArray(existing) && existing.length > 0
+      ? await redisClient.hgetallAsync(existing[0])
+      : null;
+  } else {
+    return await DB.ShortenUrl.findOne({
+      where: {
+        url: { $eq: url }
+      }
+    });
+  }
 };
 
 const getShorten = async params => {
@@ -218,5 +241,6 @@ module.exports = {
   getShorten,
   validateCustomCode,
   getCode,
-  saveShorten
+  saveShorten,
+  reuseExisting
 };
