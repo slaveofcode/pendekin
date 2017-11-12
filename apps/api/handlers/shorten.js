@@ -143,7 +143,7 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
       ? customCode
       : Shorten.getCode(siteConfig.shorten_length_code, prefix);
 
-    const shorten = await DB.ShortenUrl.create({
+    const shorten = await Shorten.saveShorten({
       expired_at: expiredTime,
       code,
       url,
@@ -167,10 +167,11 @@ router.post("/bulk", Permission.BasicOrClient(), async (req, res, next) => {
 
     const bulkParams = [];
     for (let shortenParam of validatedBulkParams) {
-      bulkParams.push(await Shorten.getShorten(shortenParam));
+      const code = await Shorten.getShorten(shortenParam);
+      if (code !== null) bulkParams.push(code);
     }
 
-    const shortens = await DB.ShortenUrl.bulkCreate(bulkParams);
+    const shortens = await Shorten.saveShorten(bulkParams);
 
     const statusCode =
       bulkParams.length < validatedBulkParams.length
@@ -334,10 +335,11 @@ router.post("/items", Permission.BasicOrClient(), async (req, res, next) => {
     const bulkParams = [];
     for (let shortenParam of items) {
       Object.assign(shortenParam, { parent_id });
-      bulkParams.push(await Shorten.getShorten(shortenParam));
+      const code = await Shorten.getShorten(shortenParam);
+      if (code !== null) bulkParams.push(code);
     }
 
-    const shortens = await DB.ShortenUrl.bulkCreate(bulkParams);
+    const shortens = await Shorten.saveShorten(bulkParams);
 
     const statusCode =
       bulkParams.length < items.length

@@ -55,6 +55,19 @@ const isCodeAvailable = async codeToCheck => {
   return _.isNull(shortenCode) ? false : true;
 };
 
+const isURLAvailable = async urlToCheck => {
+  let shortenCode;
+  if (siteConfig.enable_redis) {
+    shortenCode = await redis().hgetallAsync(`${SHORTEN_KEY}:${codeToCheck}`);
+  } else {
+    shortenCode = await DB.ShortenUrl.findOne({
+      where: {
+        url: urlToCheck
+      }
+    });
+  }
+};
+
 const normalizeExpiredTime = expired_at => {
   return _.isNil(expired_at) ? null : moment(expired_at);
 };
@@ -158,6 +171,42 @@ const getShorten = async params => {
   };
 };
 
+const saveShorten = async shortenCodeParam => {
+  if (_.isArray(shortenCodeParam)) {
+    const shortens = await DB.ShortenUrl.bulkCreate(shortenCodeParam);
+
+    if (siteConfig.enable_redis) {
+      const redisClient = redis();
+      for (shortened of shortens) {
+        /**
+         * Save index to track existing shortened code by url
+         * the pattern will look like this
+         * SHORTEN:URL:<url-to-index> -> SHORTEN:<shorten-code>
+         */
+        redisClient.sadd(
+          `${siteConfig.redis_shorten_key}:URL:${shortened.url}`,
+          `${siteConfig.redis_shorten_key}:${shortened.code}`
+        );
+      }
+    }
+    return shortens;
+  } else {
+    const shorten = await DB.ShortenUrl.create(shortenCodeParam);
+    if (siteConfig.enable_redis) {
+      /**
+       * Save index to track existing shortened code by url
+       * the pattern will look like this
+       * SHORTEN:URL:<url-to-index> -> SHORTEN:<shorten-code>
+       */
+      redisClient.sadd(
+        `${siteConfig.redis_shorten_key}:URL:${shorten.url}`,
+        `${siteConfig.redis_shorten_key}:${shorten.code}`
+      );
+    }
+    return shorten;
+  }
+};
+
 module.exports = {
   serializeObj,
   serializeListObj,
@@ -168,5 +217,6 @@ module.exports = {
   checkUrlValidity,
   getShorten,
   validateCustomCode,
-  getCode
+  getCode,
+  saveShorten
 };
