@@ -98,7 +98,7 @@ const validateCustomCode = async (custom_code, prefix) => {
   return codeToCheck;
 };
 
-const getCode = (length = 6, prefix) => {
+const getCode = (length = siteConfig.shorten_length_code, prefix) => {
   const code = CodeGenerator.generate(length);
   return prefix ? `${prefix}${PREFIX_SEPARATOR}${code}` : code;
 };
@@ -144,7 +144,9 @@ const getShorten = async params => {
     if (customCode === null) return null;
   }
 
-  const code = customCode ? customCode : getCode(6, prefix);
+  const code = customCode
+    ? customCode
+    : getCode(siteConfig.shorten_length_code, prefix);
 
   return {
     expired_at: expiredTime,

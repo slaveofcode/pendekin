@@ -1,5 +1,6 @@
 {
   "visit_url_path": "go",
+  "shorten_length_code": 7,
   "enable_redis": false,
   "redis_shorten_key": "SHORTEN"
 }

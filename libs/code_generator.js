@@ -22,7 +22,7 @@ const getRandomInt = (min, max) => {
  * It doesn't mean that your ids will be exactly that length."
  * @param {*} length 
  */
-const generate = (length = 4) => {
+const generate = (length = 7) => {
   const hashid = new HashIds(uniqueCode(), length);
   return hashid.encode([
     getRandomInt(1, 1000),
@@ -41,7 +41,7 @@ const generate = (length = 4) => {
  * @param {*} count 
  * @param {*} length 
  */
-const generateBulk = (count, length = 4) => {
+const generateBulk = (count, length = 7) => {
   const codes = [];
   for (let i = 1; i <= count; i++) {
     codes.push(generate(length));

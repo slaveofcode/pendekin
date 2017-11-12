@@ -12,6 +12,7 @@ const Joi = require(`${project_root}/libs/joi`);
 const DB = require(`${project_root}/models`);
 const CodeGenerator = require(`${project_root}/libs/code_generator`);
 const Pagination = require(`${project_root}/libs/pagination_parser`);
+const siteConfig = require(`${config_root}/site`);
 
 const router = new Routing();
 const pageExtractor = Pagination.parser();
@@ -138,7 +139,9 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
         );
     }
 
-    const code = customCode ? customCode : Shorten.getCode(6, prefix);
+    const code = customCode
+      ? customCode
+      : Shorten.getCode(siteConfig.shorten_length_code, prefix);
 
     const shorten = await DB.ShortenUrl.create({
       expired_at: expiredTime,

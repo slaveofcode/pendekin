@@ -31,7 +31,7 @@ const isCodeExist = async code => {
  * @param string separator 
  */
 const generate = async (
-  length = 6,
+  length = 7,
   prefix = null,
   separator = "-",
   config = {}
@@ -57,7 +57,7 @@ const generate = async (
 
 const generateBulk = (
   count,
-  length = 6,
+  length = 7,
   prefix = null,
   separator = "-",
   config = {}
