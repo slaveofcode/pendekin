@@ -6,26 +6,38 @@ const Routing = require("restify-routing");
 const moment = require("moment");
 const HttpStatus = require("http-status-codes");
 const DB = require(`${project_root}/models`);
+const Shorten = require("../api/utils/shorten");
+const siteConfig = require(`${project_root}/config/site`);
 
 const router = new Routing();
 const PASSWORD_PATH = "password-required";
 
 const getShortenByCode = async code => {
-  const shorten = await DB.ShortenUrl.findAll({
+  const shorten = await DB.ShortenUrl.findOne({
     where: {
       code: { $eq: code }
-    },
-    include: [
-      {
-        model: DB.ShortenUrl,
-        as: "ChildrenUrl"
-      }
-    ]
+    }
   });
 
   if (_.isNull(shorten) || !_.isNil(shorten.deleted_at)) return null;
-
   return shorten;
+};
+
+const getShortenItems = async parentId => {
+  const shortenItems = await DB.ShortenUrl.findAll({
+    where: { parent_id: { $eq: parentId } }
+  });
+
+  const parsedShortenItems = shortenItems
+    ? Shorten.serializeListObj(shortenItems)
+    : [];
+
+  return parsedShortenItems.map(shorten => {
+    shorten.shortenUrlSite = `${siteConfig.base_url}${siteConfig.visit_url_path}/${shorten.code}`;
+    return shorten;
+  });
+
+  return parsedResponse;
 };
 
 router.get(`/:code/${PASSWORD_PATH}`, async (req, res, next) => {
@@ -53,8 +65,7 @@ router.get("/:code", async (req, res, next) => {
   try {
     const shorten = await getShortenByCode(code);
 
-    if (_.isNull(shorten))
-      return res.send(new RestifyError.NotFoundError("Page not found"));
+    if (_.isNull(shorten)) return res.render("error/404");
 
     /**
      * Check for expiry
@@ -79,8 +90,11 @@ router.get("/:code", async (req, res, next) => {
      * Check for index url type
      */
     if (shorten.is_index_urls) {
-      // fetch all child urls
-      // render html index here
+      const items = await getShortenItems(shorten.id);
+      return res.render("index_urls", {
+        shorten,
+        items
+      });
     }
 
     /**

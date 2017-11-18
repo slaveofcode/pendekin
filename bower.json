@@ -1,0 +1,31 @@
+{
+  "name": "pendekin",
+  "description": "Simple self-hosted shorthener url app that produce short url with primary service based on RESTful API",
+  "main": "runner.js",
+  "authors": [
+    "Aditya Kresna Permana"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "shortener",
+    "url-shortener",
+    "link-shortener",
+    "self-hosted",
+    "shortener-rest",
+    "shortener-api",
+    "api-rest",
+    "restful",
+    "restful-api"
+  ],
+  "homepage": "https://github.com/slaveofcode/pendekin",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.2.1"
+  }
+}

@@ -21,7 +21,10 @@ const schema = Joi.object().keys({
   url: Joi.string()
     .trim()
     .lowercase()
-    .required(),
+    .when("is_index", {
+      is: false,
+      then: Joi.required()
+    }),
   category_id: Joi.string(),
   prefix: Joi.string()
     .trim()
@@ -129,7 +132,6 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
       Shorten.serializeObj(await Shorten.saveShorten(shortenCode))
     );
   } catch (err) {
-    console.log(err);
     return next(err);
   }
 });

@@ -1,5 +1,7 @@
 "use strict";
 
+const DB = require(`${project_root}/models`);
+
 module.exports = function(sequelize, DataTypes) {
   var ShortenUrl = sequelize.define(
     "ShortenUrl",
@@ -20,7 +22,10 @@ module.exports = function(sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: true
       },
-      url: DataTypes.STRING,
+      url: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       is_index_urls: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
@@ -49,9 +54,15 @@ module.exports = function(sequelize, DataTypes) {
           ShortenUrl.belongsTo(models.ShortenCategory, {
             foreignKey: "shorten_category_id"
           });
-          ShortenUrl.hasMany(models.ShortenUrl, {
+          ShortenUrl.hasMany(ShortenUrl, {
             as: "ChildrenUrl",
-            foreignKey: "parent_id"
+            foreignKey: "parent_id",
+            sourceKey: "id"
+          });
+          ShortenUrl.belongsTo(ShortenUrl, {
+            as: "Parent",
+            sourceKey: "parent_id",
+            targetKey: "id"
           });
           ShortenUrl.hasMany(models.ShortenSideEffect);
         }

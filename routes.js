@@ -12,7 +12,7 @@ router.get(
   /\/assets\/(.*)?.*/,
   restify.plugins.serveStatic({
     directory: `${project_root}/static`,
-    appendRequestPath: false,
+    appendRequestPath: true,
     default: "index.html"
   })
 );

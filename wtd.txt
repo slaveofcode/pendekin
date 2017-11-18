@@ -1,5 +1,4 @@
 WHAT TO DO:
-- Patch destination url on existing shortened url
 - Page for password protected shorten
 - Page for index url 
 - Database sync redis ?
