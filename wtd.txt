@@ -1,0 +1,4 @@
+WHAT TO DO:
+- Database sync redis ?
+- optional using redis & optional Redis check on every generated shortener
+

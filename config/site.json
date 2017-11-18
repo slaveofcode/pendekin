@@ -1,0 +1,7 @@
+{
+  "base_url": "http://jum.dev/",
+  "visit_url_path": "go",
+  "shorten_length_code": 7,
+  "enable_redis": true,
+  "redis_shorten_key": "SHORTEN"
+}

@@ -1,15 +1,22 @@
 {
   "name": "pendekin",
   "version": "1.0.0",
-  "description": "Simple self-hosted shorthener url app that produce short url with primary service based on RESTful API",
-  "main": "server.js",
+  "description":
+    "Simple self-hosted shorthener url app that produce short url with primary service based on RESTful API",
+  "main": "runner.js",
   "scripts": {
-    "start": "node server.js",
-    "start:debug": "node --inspect=1891 server.js",
-    "db:migrate": "sequelize db:migrate",
-    "db:migrate:undo": "sequelize db:migrate:undo",
-    "db:migration:create": "sequelize migration:create",
-    "db:migration:version": "sequelize version"
+    "start": "node runner.js",
+    "start:debug": "node --inspect=1891 runner.js",
+    "db:migrate": "sequelize db:migrate --config=./config/config.json",
+    "db:migrate:undo":
+      "sequelize db:migrate:undo --config=./config/config.json",
+    "db:migration:create:info": "sequelize help:migration:create",
+    "db:migration:create": "sequelize migration:create --name",
+    "db:seed:all": "sequelize db:seed:all --config=./config/config.json",
+    "test":
+      "NODE_ENV=test mocha --require global_var.js --timeout 15000 --recursive --slow 1 test/",
+    "test:watch":
+      "NODE_ENV=test mocha --watch --require global_var.js --timeout 15000 --recursive --slow 1 test/"
   },
   "repository": {
     "type": "git",
@@ -33,12 +40,42 @@
   },
   "homepage": "https://github.com/slaveofcode/pendekin#readme",
   "dependencies": {
+    "axios": "^0.16.2",
+    "bcryptjs": "^2.4.3",
+    "bluebird": "^3.5.0",
+    "bunyan-winston-adapter": "^0.2.0",
+    "chai-things": "^0.2.0",
     "dotenv": "^4.0.0",
+    "hashids": "^1.1.1",
+    "http-status-codes": "^1.2.0",
+    "joi": "^10.6.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "passport": "^0.4.0",
+    "passport-http": "^0.3.0",
+    "passport-oauth2-client-password": "^0.1.2",
     "pg": "^7.2.0",
     "pg-hstore": "^2.3.2",
+    "pug": "^2.0.0-rc.4",
+    "randomatic": "^2.0.0",
+    "randomstring": "^1.1.5",
+    "redis": "^2.8.0",
     "restify": "^5.2.0",
     "restify-cors-middleware": "^1.0.1",
+    "restify-errors": "^5.0.0",
+    "restify-routing": "^0.3.11",
     "sequelize": "^4.7.5",
-    "sequelize-cli": "^2.8.0"
+    "sequelize-cli": "^2.8.0",
+    "shortid": "^2.2.8",
+    "uuid": "^3.1.0",
+    "valid-url": "^1.0.9",
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "faker": "^4.1.0",
+    "mocha": "^3.5.3",
+    "sinon": "^4.0.0",
+    "supertest": "^3.0.0"
   }
 }

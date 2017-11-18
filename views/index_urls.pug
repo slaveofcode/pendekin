@@ -1,0 +1,10 @@
+html
+  head
+    title Index
+    block scripts
+      script(src='/assets/libs/jquery/dist/jquery.min.js')
+  body
+    h1 Index Shortener Page
+    each item in items
+      p
+        a(href=item.url_shortener, target="_blank")= item.url_shortener
