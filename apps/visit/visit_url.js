@@ -7,7 +7,9 @@ const moment = require("moment");
 const HttpStatus = require("http-status-codes");
 const DB = require(`${project_root}/models`);
 const Shorten = require("../api/utils/shorten");
+const Joi = require(`${project_root}/libs/joi`);
 const siteConfig = require(`${project_root}/config/site`);
+const passwordLib = require(`${project_root}/libs/password`);
 
 const router = new Routing();
 const PASSWORD_PATH = "password-required";
@@ -43,8 +45,6 @@ const getShortenItems = async parentId => {
 router.get(`/:code/${PASSWORD_PATH}`, async (req, res, next) => {
   const { code } = req.params;
 
-  // accepting password from post data
-
   try {
     const shorten = await getShortenByCode(code);
 
@@ -53,6 +53,38 @@ router.get(`/:code/${PASSWORD_PATH}`, async (req, res, next) => {
 
     return res.render("password/protect", {
       title: "Please provide the Password to continue"
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post(`/:code/${PASSWORD_PATH}`, async (req, res, next) => {
+  const { params } = req;
+
+  const schema = Joi.object().keys({
+    code: Joi.string().required(),
+    password: Joi.string().required()
+  });
+
+  try {
+    const validatedParams = await Joi.validate(params, schema);
+    const shorten = await getShortenByCode(validatedParams.code);
+
+    if (_.isNull(shorten))
+      return res.send(new RestifyError.NotFoundError("Page not found"));
+
+    if (
+      await passwordLib.comparePassword(
+        validatedParams.password,
+        shorten.protected_password
+      )
+    ) {
+      res.redirect(shorten.url, next);
+    }
+
+    return res.render("password/protect", {
+      message: "password not valid"
     });
   } catch (err) {
     return next(err);
