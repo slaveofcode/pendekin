@@ -56,6 +56,7 @@ server.use(restify.plugins.acceptParser(server.acceptable));
 server.use(restify.plugins.queryParser({ mapParams: true }));
 server.use(restify.plugins.fullResponse());
 server.use(restify.plugins.conditionalRequest()); // ETag support
+server.use(restify.plugins.bodyParser({ mapParams: true, mapFiles: false }));
 server.use(cors.actual);
 server.use(passport.initialize());
 server.use(passport.session());

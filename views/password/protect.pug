@@ -1,1 +1,12 @@
-Please Provide YOUR PASSWORD
+html
+  head
+    title Index
+    block scripts
+      script(src='/assets/libs/jquery/dist/jquery.min.js')
+  body
+    h1 Please Provide The Password
+    if message
+      p= message
+    form(method="post")
+      input(type="password", name="password")
+      button(type="submit") Visit

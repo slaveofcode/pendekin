@@ -159,7 +159,7 @@ const getShorten = async params => {
   /**
    * Checking URL validity
    */
-  if (!checkUrlValidity(url))
+  if (!checkUrlValidity(url) && !is_index_urls)
     return isThrowing
       ? new RestifyError.BadRequestError("URL parameter is not valid")
       : null;

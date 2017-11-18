@@ -223,6 +223,8 @@ tags
 # .idea/misc.xml
 # *.ipr
 
+static/assets/libs
+
 # Configuration files
 config/config.json
 # End of https://www.gitignore.io/api/vim,node,redis,webstorm,notepadpp,jetbrains,sublimetext,visualstudiocode

@@ -642,7 +642,6 @@ describe("Shorten api's", () => {
       const authKey = await authClient.getAuthorizationKey();
 
       const params = {
-        url: faker.internet.url(),
         is_index: true
       };
 
@@ -651,6 +650,7 @@ describe("Shorten api's", () => {
       });
 
       const shortenData = shortenCode.data;
+
       expect(shortenCode.status).to.equal(201);
       expect(shortenData.is_index_urls).to.be.a("boolean");
       expect(shortenData.is_index_urls).to.equal(true);

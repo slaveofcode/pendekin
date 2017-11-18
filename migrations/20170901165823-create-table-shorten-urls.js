@@ -39,7 +39,7 @@ module.exports = {
           },
           url: {
             type: Sequelize.STRING(512),
-            allowNull: false
+            allowNull: true
           },
           is_index_urls: {
             type: Sequelize.BOOLEAN,

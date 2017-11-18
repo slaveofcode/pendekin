@@ -22,14 +22,9 @@ const getRandomInt = (min, max) => {
  * It doesn't mean that your ids will be exactly that length."
  * @param {*} length 
  */
-const generate = (length = 7) => {
-  const hashid = new HashIds(uniqueCode(), length);
-  return hashid.encode([
-    getRandomInt(1, 1000),
-    getRandomInt(1, 1000),
-    getRandomInt(1, 1000),
-    getRandomInt(1, 1000)
-  ]);
+const generate = (minLength = 4) => {
+  const hashid = new HashIds(uniqueCode(), minLength);
+  return hashid.encode([getRandomInt(1, 1000), getRandomInt(1, 1000)]);
 };
 
 /**
