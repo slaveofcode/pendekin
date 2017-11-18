@@ -695,6 +695,8 @@ describe("Shorten api's", () => {
         expect(code.parent_id).to.equal(shortenCodeIndex.data.id);
       }
     });
+
+    it("Should be able to get list item from index", async () => {});
   });
 
   describe("Visit", () => {

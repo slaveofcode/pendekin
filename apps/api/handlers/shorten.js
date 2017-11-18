@@ -77,7 +77,21 @@ router.get("/:id", Permission.BasicOrClient(), async (req, res, next) => {
     if (_.isNull(shorten))
       return res.send(new RestifyError.NotFoundError("Item not found"));
 
-    return res.send(HttpStatus.OK, Shorten.serializeObj(shorten));
+    const shortenSerialized = Shorten.serializeObj(shorten);
+
+    if (shorten.is_index_urls) {
+      const shortenItems = await DB.ShortenUrl.findAll({
+        where: { parent_id: { $eq: shorten.id } }
+      });
+
+      if (shortenItems) {
+        Object.assign(shortenSerialized, {
+          items: Shorten.serializeListObj(shortenItems)
+        });
+      }
+    }
+
+    return res.send(HttpStatus.OK, shortenSerialized);
   } catch (err) {
     return next(err);
   }
