@@ -3,6 +3,7 @@
 const _ = require("lodash");
 const moment = require("moment");
 const ValidUrl = require("valid-url");
+const RestifyError = require("restify-errors");
 const DB = require(`${project_root}/models`);
 const PasswordLib = require(`${project_root}/libs/password`);
 const CodeGenerator = require(`${project_root}/libs/code_generator`);
@@ -147,13 +148,21 @@ const getShorten = async params => {
     url,
     category_id,
     custom_code,
-    parent_id
+    parent_id,
+    auto_removed: is_auto_remove_on_visited,
+    is_index: is_index_urls,
+    throwOnError
   } = params;
+
+  const isThrowing = _.isNil(throwOnError) ? true : throwOnError;
 
   /**
    * Checking URL validity
    */
-  if (!checkUrlValidity(url)) return null;
+  if (!checkUrlValidity(url))
+    return isThrowing
+      ? new RestifyError.BadRequestError("URL parameter is not valid")
+      : null;
 
   /**
    * Checking category
@@ -161,7 +170,10 @@ const getShorten = async params => {
   let shorten_category_id = null;
   if (!_.isNil(category_id)) {
     shorten_category_id = await normalizeCategory(category_id);
-    if (_.isNull(shorten_category_id)) return null;
+    if (_.isNull(shorten_category_id))
+      return isThrowing
+        ? new RestifyError.BadRequestError("Category not found")
+        : null;
   }
 
   /**
@@ -177,14 +189,17 @@ const getShorten = async params => {
   let customCode = null;
   if (!_.isNil(custom_code)) {
     customCode = await validateCustomCode(custom_code, prefix);
-    if (customCode === null) return null;
+    if (customCode === null)
+      return isThrowing
+        ? new RestifyError.BadRequestError("Custom Code already exist")
+        : null;
   }
 
   const code = customCode
     ? customCode
     : getCode(siteConfig.shorten_length_code, prefix);
 
-  return {
+  const responseObj = {
     expired_at: expiredTime,
     code,
     url,
@@ -192,6 +207,16 @@ const getShorten = async params => {
     protected_password,
     parent_id
   };
+
+  if (is_auto_remove_on_visited) {
+    Object.assign(responseObj, { is_auto_remove_on_visited });
+  }
+
+  if (is_index_urls) {
+    Object.assign(responseObj, { is_index_urls });
+  }
+
+  return responseObj;
 };
 
 const saveShorten = async shortenCodeParam => {

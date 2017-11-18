@@ -88,76 +88,34 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
 
   try {
     const validatedParams = await Joi.validate(params, schema);
-    const {
-      prefix,
-      password,
-      expired_at,
-      url,
-      reuse_existing,
-      category_id,
-      custom_code,
-      auto_removed: is_auto_remove_on_visited,
-      is_index: is_index_urls
-    } = validatedParams;
 
-    /**
-     * Checking URL validity
-     */
-    if (!Shorten.checkUrlValidity(url))
-      return res.send(
-        new RestifyError.BadRequestError("URL parameter is not valid")
-      );
+    const { reuse_existing, url } = validatedParams;
 
-    /**
-     * Checking category
-     */
-    let shorten_category_id = null;
-    if (!_.isNil(category_id)) {
-      shorten_category_id = await Shorten.normalizeCategory(category_id);
-      if (_.isNull(shorten_category_id))
-        return res.send(new RestifyError.BadRequestError("Category not found"));
+    let shortenCode = reuse_existing ? await Shorten.reuseExisting(url) : null;
+
+    if (reuse_existing && shortenCode)
+      return res.send(HttpStatus.OK, Shorten.serializeObj(shortenCode));
+
+    if (shortenCode === null) {
+      shortenCode = await Shorten.getShorten(validatedParams);
     }
 
     /**
-     * Checking protected password
+     * Throwing any errors
      */
-    let protected_password = await Shorten.hashPassword(password);
-
-    /**
-     * Checking expired time
-     */
-    let expiredTime = Shorten.normalizeExpiredTime(expired_at);
-
-    /**
-     * Checking custom code
-     */
-    let customCode = null;
-    if (!_.isNil(custom_code)) {
-      customCode = await Shorten.validateCustomCode(custom_code, prefix);
-      if (customCode === null)
-        return res.send(
-          new RestifyError.BadRequestError("Custom Code already exist")
-        );
+    if (
+      shortenCode instanceof RestifyError.HttpError ||
+      shortenCode instanceof RestifyError.RestError
+    ) {
+      return res.send(shortenCode);
     }
 
-    const code = customCode
-      ? customCode
-      : Shorten.getCode(siteConfig.shorten_length_code, prefix);
-
-    const shorten = reuse_existing
-      ? await Shorten.reuseExisting(url)
-      : await Shorten.saveShorten({
-          expired_at: expiredTime,
-          code,
-          url,
-          shorten_category_id,
-          protected_password,
-          is_auto_remove_on_visited,
-          is_index_urls
-        });
-
-    return res.send(HttpStatus.CREATED, Shorten.serializeObj(shorten));
+    return res.send(
+      HttpStatus.CREATED,
+      Shorten.serializeObj(await Shorten.saveShorten(shortenCode))
+    );
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 });
@@ -178,6 +136,7 @@ router.post("/bulk", Permission.BasicOrClient(), async (req, res, next) => {
       if (shortenCode !== null) existingShortens.push(shortenCode);
 
       while (shortenCode === null) {
+        shortenParam.throwOnError = false;
         shortenCode = await Shorten.getShorten(shortenParam);
         if (shortenCode !== null) bulkParams.push(shortenCode);
       }
@@ -193,7 +152,6 @@ router.post("/bulk", Permission.BasicOrClient(), async (req, res, next) => {
 
     return res.send(statusCode, Shorten.serializeListObj(mergedShortens));
   } catch (err) {
-    console.log(err);
     return next(err);
   }
 });

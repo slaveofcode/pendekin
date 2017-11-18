@@ -301,12 +301,12 @@ describe("Shorten api's", () => {
       const shortenDataReuse = shortenCodeReuse.data;
       expect(shortenCode.status).to.equal(201);
       expect(shortenData).to.be.an("object");
-      expect(shortenCodeReuse.status).to.equal(201);
+      expect(shortenCodeReuse.status).to.equal(200);
       expect(shortenDataReuse).to.be.an("object");
       expect(shortenData.code).to.equal(shortenDataReuse.code);
     });
 
-    it.only("Should be able to use existing shortener with bulk", async () => {
+    it("Should be able to use existing shortener with bulk", async () => {
       // Initialize auth
       const authKey = await authClient.getAuthorizationKey();
 
