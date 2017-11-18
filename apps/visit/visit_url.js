@@ -1,5 +1,6 @@
 "use strict";
 
+const restify = require("restify");
 const _ = require("lodash");
 const RestifyError = require("restify-errors");
 const Routing = require("restify-routing");
@@ -30,16 +31,7 @@ const getShortenItems = async parentId => {
     where: { parent_id: { $eq: parentId } }
   });
 
-  const parsedShortenItems = shortenItems
-    ? Shorten.serializeListObj(shortenItems)
-    : [];
-
-  return parsedShortenItems.map(shorten => {
-    shorten.shortenUrlSite = `${siteConfig.base_url}${siteConfig.visit_url_path}/${shorten.code}`;
-    return shorten;
-  });
-
-  return parsedResponse;
+  return shortenItems ? Shorten.serializeListObj(shortenItems) : [];
 };
 
 router.get(`/:code/${PASSWORD_PATH}`, async (req, res, next) => {
@@ -59,37 +51,42 @@ router.get(`/:code/${PASSWORD_PATH}`, async (req, res, next) => {
   }
 });
 
-router.post(`/:code/${PASSWORD_PATH}`, async (req, res, next) => {
-  const { params } = req;
-
-  const schema = Joi.object().keys({
-    code: Joi.string().required(),
-    password: Joi.string().required()
-  });
-
-  try {
-    const validatedParams = await Joi.validate(params, schema);
-    const shorten = await getShortenByCode(validatedParams.code);
-
-    if (_.isNull(shorten))
-      return res.send(new RestifyError.NotFoundError("Page not found"));
-
-    if (
-      await passwordLib.comparePassword(
-        validatedParams.password,
-        shorten.protected_password
-      )
-    ) {
-      res.redirect(shorten.url, next);
-    }
-
-    return res.render("password/protect", {
-      message: "password not valid"
+router.post(
+  `/:code/${PASSWORD_PATH}`,
+  restify.plugins.bodyParser({ mapParams: false, mapFiles: false }),
+  async (req, res, next) => {
+    const schema = Joi.object().keys({
+      code: Joi.string().required(),
+      password: Joi.string().required()
     });
-  } catch (err) {
-    return next(err);
+
+    try {
+      const validatedParams = await Joi.validate(
+        Object.assign({}, req.params, req.body),
+        schema
+      );
+      const shorten = await getShortenByCode(validatedParams.code);
+
+      if (_.isNull(shorten))
+        return res.send(new RestifyError.NotFoundError("Page not found"));
+
+      if (
+        await passwordLib.comparePassword(
+          validatedParams.password,
+          shorten.protected_password
+        )
+      ) {
+        res.redirect(shorten.url, next);
+      }
+
+      return res.render("password/protect", {
+        message: "password not valid"
+      });
+    } catch (err) {
+      return next(err);
+    }
   }
-});
+);
 
 router.get("/:code", async (req, res, next) => {
   const { code } = req.params;

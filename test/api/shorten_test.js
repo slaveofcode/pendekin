@@ -122,7 +122,8 @@ describe("Shorten api's", () => {
         "shorten_category_id",
         "updated_at",
         "created_at",
-        "has_password"
+        "has_password",
+        "url_shortener"
       ]);
     });
 
@@ -220,7 +221,8 @@ describe("Shorten api's", () => {
         "shorten_category_id",
         "updated_at",
         "created_at",
-        "has_password"
+        "has_password",
+        "url_shortener"
       ]);
     });
 

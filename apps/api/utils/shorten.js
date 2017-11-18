@@ -12,9 +12,14 @@ const siteConfig = require(`${config_root}/site`);
 const redis = require(`${project_root}/redis`);
 
 const PREFIX_SEPARATOR = "-";
-const SHORTEN_KEY = siteConfig.redis_shorten_key || "SHORTEN";
+const SHORTEN_KEY_PREFIX = siteConfig.redis_shorten_key || "SHORTEN";
+const SHORTEN_FIELD_NAME = "json_shorten";
 
 const redisClient = siteConfig.enable_redis ? redis() : null;
+
+const parseShortenUrl = code => {
+  return `${siteConfig.base_url}${siteConfig.visit_url_path}/${code}`;
+};
 
 const serializeObj = shortenCode => {
   const shortenJSON = !_.isPlainObject(shortenCode)
@@ -32,9 +37,12 @@ const serializeObj = shortenCode => {
     "deleted_at"
   ]);
 
+  const url_shortener = code ? parseShortenUrl(code) : null;
+
   return Object.assign(allowedValues, {
     code,
-    has_password: hasPassword
+    has_password: hasPassword,
+    url_shortener: parseShortenUrl(code)
   });
 };
 
@@ -44,12 +52,73 @@ const serializeListObj = shortensArray => {
   });
 };
 
+const getFromRedis = async code => {
+  const redisHash = await redisClient.hgetallAsync(
+    `${SHORTEN_KEY_PREFIX}:${code}`
+  );
+
+  if (redisHash) {
+    // parse back to JSON object
+    return JSON.parse(redisHash[SHORTEN_FIELD_NAME]);
+  }
+
+  return null;
+};
+
+const getFromRedisIndexUrl = async url => {
+  const existing = await redisClient.sinterAsync(
+    `${SHORTEN_KEY_PREFIX}:URL:${url}`
+  );
+
+  if (_.isArray(existing) && existing.length > 0) {
+    const redisHash = await redisClient.hgetallAsync(existing[0]);
+    return JSON.parse(redisHash[SHORTEN_FIELD_NAME]);
+  }
+
+  return null;
+};
+
+const setToRedisIndexUrl = (url, code) => {
+  /**
+   * Save index to track existing shortened code by url
+   * the pattern will be like this
+   * SHORTEN:URL:<url-to-index> -> SHORTEN:<shorten-code>
+   */
+  redisClient.sadd(
+    `${SHORTEN_KEY_PREFIX}:URL:${url}`,
+    `${SHORTEN_KEY_PREFIX}:${code}`
+  );
+};
+
+const setToRedis = (code, shortenObj, indexUrl = true) => {
+  /**
+   * set hash to redis
+   * this will set SHORTEN_FIELD_NAME as a field name on hash
+   * the key will be like this
+   * SHORTEN:<code> -> { json_shorten: <json-stringify-of-shorten-object> }
+   */
+  redisClient.hmsetAsync(
+    `${SHORTEN_KEY_PREFIX}:${code}`,
+    SHORTEN_FIELD_NAME,
+    JSON.stringify(shortenObj)
+  );
+
+  if (indexUrl) {
+    setToRedisIndexUrl(shortenObj.url, code);
+  }
+};
+
 const isCodeAvailable = async codeToCheck => {
   let shortenCode;
   if (siteConfig.enable_redis) {
-    shortenCode = await redisClient.hgetallAsync(
-      `${SHORTEN_KEY}:${codeToCheck}`
-    );
+    shortenCode = await getFromRedis(codeToCheck);
+    if (shortenCode === null) {
+      shortenCode = await DB.ShortenUrl.findOne({
+        where: {
+          code: codeToCheck
+        }
+      });
+    }
   } else {
     shortenCode = await DB.ShortenUrl.findOne({
       where: {
@@ -58,21 +127,6 @@ const isCodeAvailable = async codeToCheck => {
     });
   }
   return _.isNull(shortenCode) ? false : true;
-};
-
-const isURLAvailable = async urlToCheck => {
-  let shortenCode;
-  if (siteConfig.enable_redis) {
-    shortenCode = await redisClient.hgetallAsync(
-      `${SHORTEN_KEY}:${codeToCheck}`
-    );
-  } else {
-    shortenCode = await DB.ShortenUrl.findOne({
-      where: {
-        url: urlToCheck
-      }
-    });
-  }
 };
 
 const normalizeExpiredTime = expired_at => {
@@ -125,12 +179,15 @@ const getCode = (length = siteConfig.shorten_length_code, prefix) => {
 
 const reuseExisting = async url => {
   if (siteConfig.enable_redis) {
-    const existing = await redisClient.sinterAsync(
-      `${siteConfig.redis_shorten_key}:URL:${url}`
-    );
-    return _.isArray(existing) && existing.length > 0
-      ? await redisClient.hgetallAsync(existing[0])
-      : null;
+    const existing = await getFromRedisIndexUrl(url);
+
+    if (existing) return existing;
+
+    return await DB.ShortenUrl.findOne({
+      where: {
+        url: { $eq: url }
+      }
+    });
   } else {
     return await DB.ShortenUrl.findOne({
       where: {
@@ -225,31 +282,15 @@ const saveShorten = async shortenCodeParam => {
 
     if (siteConfig.enable_redis) {
       const redisClient = redis();
-      for (shortened of shortens) {
-        /**
-         * Save index to track existing shortened code by url
-         * the pattern will look like this
-         * SHORTEN:URL:<url-to-index> -> SHORTEN:<shorten-code>
-         */
-        redisClient.sadd(
-          `${siteConfig.redis_shorten_key}:URL:${shortened.url}`,
-          `${siteConfig.redis_shorten_key}:${shortened.code}`
-        );
+      for (const shortened of shortens) {
+        setToRedis(shortened.code, shortened);
       }
     }
     return shortens;
   } else {
     const shorten = await DB.ShortenUrl.create(shortenCodeParam);
     if (siteConfig.enable_redis) {
-      /**
-       * Save index to track existing shortened code by url
-       * the pattern will look like this
-       * SHORTEN:URL:<url-to-index> -> SHORTEN:<shorten-code>
-       */
-      redisClient.sadd(
-        `${siteConfig.redis_shorten_key}:URL:${shorten.url}`,
-        `${siteConfig.redis_shorten_key}:${shorten.code}`
-      );
+      setToRedis(shorten.code, shorten);
     }
     return shorten;
   }
@@ -267,5 +308,6 @@ module.exports = {
   validateCustomCode,
   getCode,
   saveShorten,
-  reuseExisting
+  reuseExisting,
+  parseShortenUrl
 };

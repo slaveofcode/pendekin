@@ -4,7 +4,7 @@ const siteConfig = require(`${config_root}/site`);
 const redis = require(`${project_root}/redis`);
 const randomatic = require("randomatic");
 
-const redisClient = redis();
+const redisClient = siteConfig.enable_redis ? redis() : null;
 const SHORTEN_KEY = siteConfig.redis_shorten_key || "SHORTEN";
 /**
  * Get dummy random string

@@ -132,6 +132,7 @@ router.post("/", Permission.BasicOrClient(), async (req, res, next) => {
       Shorten.serializeObj(await Shorten.saveShorten(shortenCode))
     );
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 });
@@ -168,6 +169,7 @@ router.post("/bulk", Permission.BasicOrClient(), async (req, res, next) => {
 
     return res.send(statusCode, Shorten.serializeListObj(mergedShortens));
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 });

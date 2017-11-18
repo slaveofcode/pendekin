@@ -1,6 +1,4 @@
 WHAT TO DO:
-- Page for password protected shorten
-- Page for index url 
 - Database sync redis ?
 - optional using redis & optional Redis check on every generated shortener
 
